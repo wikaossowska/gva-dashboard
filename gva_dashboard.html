@@ -1,0 +1,1072 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>GVA SharePoint Analytics</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=72:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue-2: #D1EFFF;
+  --blue-4: #89D1FF;
+  --blue-6: #1B90FF;
+  --blue-7: #0070F2;
+  --blue-10: #002A86;
+  --blue-11: #00144A;
+  --gold: #F0AB00;
+  --gold-light: #FFF3CC;
+  --white: #FFFFFF;
+  --black: #000000;
+  --grey-1: #F5F6F8;
+  --grey-2: #EDEFF2;
+  --grey-text: #556068;
+  --success: #107E3E;
+  --danger: #BB0000;
+  --radius: 12px;
+  --shadow: 0 2px 16px rgba(0,40,130,0.10);
+  --shadow-lg: 0 8px 40px rgba(0,40,130,0.15);
+  --font: '72', 'Helvetica Neue', Arial, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: var(--font);
+  background: var(--grey-1);
+  color: #2A2D36;
+  font-size: 14px;
+  min-height: 100vh;
+}
+
+/* ─── HEADER ─── */
+.header {
+  background: linear-gradient(135deg, var(--blue-11) 0%, var(--blue-10) 45%, var(--blue-7) 100%);
+  color: var(--white);
+  padding: 0 32px;
+  position: relative;
+  overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute;
+  top: -80px; right: -80px;
+  width: 320px; height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(27,144,255,0.25) 0%, transparent 70%);
+  pointer-events: none;
+}
+.header::after {
+  content: '';
+  position: absolute;
+  bottom: -40px; left: 20%;
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(240,171,0,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 0;
+  position: relative;
+  z-index: 1;
+}
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.sap-logo {
+  width: 44px; height: 24px;
+  background: var(--white);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--blue-10);
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+.header-title h1 {
+  font-size: 21px;
+  font-weight: 700;
+  letter-spacing: -0.3px;
+  line-height: 1.1;
+}
+.header-title .sub {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-top: 2px;
+  letter-spacing: 0.4px;
+}
+.header-meta {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.header-stat {
+  text-align: right;
+}
+.header-stat .hs-val {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1;
+}
+.header-stat .hs-lbl {
+  font-size: 10px;
+  opacity: 0.65;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+.header-divider {
+  width: 1px;
+  height: 36px;
+  background: rgba(255,255,255,0.2);
+}
+
+/* ─── TAB BAR ─── */
+.tab-bar-wrap {
+  background: var(--white);
+  border-bottom: 1px solid var(--grey-2);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 12px rgba(0,40,130,0.07);
+}
+.tab-bar-scroll {
+  overflow-x: auto;
+  white-space: nowrap;
+  scrollbar-width: none;
+}
+.tab-bar-scroll::-webkit-scrollbar { display: none; }
+.tab-bar {
+  display: inline-flex;
+  padding: 0 24px;
+}
+.tab-btn {
+  display: inline-block;
+  padding: 14px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--grey-text);
+  cursor: pointer;
+  border: none;
+  background: none;
+  border-bottom: 3px solid transparent;
+  transition: all 0.18s;
+  white-space: nowrap;
+  font-family: var(--font);
+}
+.tab-btn:hover { color: var(--blue-7); }
+.tab-btn.active {
+  color: var(--blue-7);
+  border-bottom-color: var(--blue-7);
+}
+
+/* ─── DROPDOWN TABS ─── */
+.tab-dropdown {
+  position: relative;
+  display: inline-block;
+}
+.tab-dropdown-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 14px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--grey-text);
+  cursor: pointer;
+  border: none;
+  background: none;
+  border-bottom: 3px solid transparent;
+  transition: all 0.18s;
+  white-space: nowrap;
+  font-family: var(--font);
+}
+.tab-dropdown-btn:hover { color: var(--blue-7); }
+.tab-dropdown-btn.active { color: var(--blue-7); border-bottom-color: var(--blue-7); }
+.tab-dropdown-arrow { font-size: 8px; transition: transform 0.15s; opacity: 0.6; }
+.tab-dropdown.open .tab-dropdown-arrow { transform: rotate(180deg); }
+.tab-dropdown-menu {
+  display: none;
+  position: fixed;
+  background: var(--white);
+  border: 1px solid var(--grey-2);
+  border-radius: 8px;
+  box-shadow: 0 8px 28px rgba(0,40,130,0.14);
+  min-width: 210px;
+  z-index: 9999;
+  padding: 6px 0;
+}
+.tab-dropdown.open .tab-dropdown-menu { display: block; }
+.tab-dropdown-item {
+  display: block;
+  width: 100%;
+  padding: 9px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #2A2D36;
+  cursor: pointer;
+  border: none;
+  background: none;
+  text-align: left;
+  font-family: var(--font);
+  transition: background 0.1s, color 0.1s;
+  white-space: nowrap;
+}
+.tab-dropdown-item:hover { background: #EBF2FF; color: var(--blue-7); }
+.tab-dropdown-item.active { color: var(--blue-7); font-weight: 700; background: #F0F7FF; }
+
+/* ─── PANELS ─── */
+.panel { display: none; padding: 28px 32px; max-width: 1440px; margin: 0 auto; }
+.panel.active { display: block; }
+
+/* ─── KPI ROW ─── */
+.kpi-row { display: flex; gap: 16px; margin-bottom: 28px; flex-wrap: wrap; }
+.kpi-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  flex: 1;
+  min-width: 190px;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 0.2s, transform 0.2s;
+}
+.kpi-card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+.kpi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--blue-7);
+  border-radius: var(--radius) var(--radius) 0 0;
+}
+.kpi-card.gold::before { background: var(--gold); }
+.kpi-card.navy::before { background: var(--blue-10); }
+.kpi-card.teal::before { background: #00A19A; }
+.kpi-card .kpi-icon {
+  position: absolute;
+  top: 16px; right: 20px;
+  font-size: 22px;
+  opacity: 0.12;
+}
+.kpi-card .lbl {
+  font-size: 10px;
+  color: var(--grey-text);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+.kpi-card .val {
+  font-size: 34px;
+  font-weight: 700;
+  color: var(--blue-11);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.5px;
+}
+.kpi-card .sub {
+  font-size: 11px;
+  color: var(--grey-text);
+  margin-top: 6px;
+}
+.kpi-card .trend {
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 5px;
+}
+.trend-up { color: var(--success); }
+.trend-down { color: var(--danger); }
+
+/* ─── SECTION TITLE ─── */
+.section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--blue-11);
+  margin-bottom: 14px;
+  margin-top: 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: 0.1px;
+}
+.section-title::before {
+  content: '';
+  display: block;
+  width: 4px;
+  height: 18px;
+  background: linear-gradient(180deg, var(--blue-7), var(--blue-10));
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* ─── CHART ROW ─── */
+.chart-row { display: flex; gap: 20px; margin-bottom: 28px; flex-wrap: wrap; }
+.chart-box {
+  flex: 1;
+  min-width: 300px;
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 22px 24px;
+  box-shadow: var(--shadow);
+}
+.chart-box .section-title { margin-bottom: 18px; }
+
+/* ─── SEARCH + EXPORT BAR ─── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.search-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 200px;
+  max-width: 420px;
+}
+.search-wrap input {
+  width: 100%;
+  height: 38px;
+  border: 1.5px solid var(--grey-2);
+  border-radius: 8px;
+  padding: 0 12px 0 36px;
+  font-size: 13px;
+  font-family: var(--font);
+  color: #2A2D36;
+  background: var(--white);
+  transition: border-color 0.15s;
+  outline: none;
+}
+.search-wrap input:focus { border-color: var(--blue-7); }
+.search-wrap input::placeholder { color: #AAB0B8; }
+.search-wrap .search-icon {
+  position: absolute;
+  left: 11px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  opacity: 0.4;
+}
+.btn-export {
+  height: 38px;
+  padding: 0 18px;
+  background: var(--blue-7);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--font);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  transition: background 0.15s, transform 0.1s;
+  white-space: nowrap;
+}
+.btn-export:hover { background: var(--blue-10); transform: translateY(-1px); }
+.btn-export:active { transform: translateY(0); }
+.filter-count {
+  font-size: 12px;
+  color: var(--grey-text);
+  margin-left: 4px;
+}
+
+/* ─── TABLE ─── */
+.table-wrap {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+table { width: 100%; border-collapse: collapse; }
+thead th {
+  background: var(--blue-11);
+  color: var(--white);
+  padding: 12px 16px;
+  text-align: left;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+thead th:hover { background: var(--blue-10); }
+thead th.sorted { background: var(--blue-7); }
+thead th:first-child { cursor: default; width: 44px; text-align: center; }
+tbody tr:nth-child(even) { background: #F8FAFF; }
+tbody tr:hover { background: #EBF2FF; }
+tbody td {
+  padding: 10px 16px;
+  font-size: 13px;
+  border-bottom: 1px solid #F0F3FA;
+  vertical-align: middle;
+}
+td.num {
+  text-align: right;
+  font-weight: 700;
+  color: var(--blue-11);
+  font-size: 14px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+td.rank {
+  text-align: center;
+  color: #9EA8B3;
+  font-size: 12px;
+  font-weight: 600;
+}
+.rank-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  font-size: 11px;
+  font-weight: 700;
+}
+.rank-1 { background: #FFD700; color: #554400; }
+.rank-2 { background: #C0C0C0; color: #333; }
+.rank-3 { background: #CD7F32; color: #fff; }
+.link-cell { max-width: 360px; }
+.link-title {
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 340px;
+  color: var(--blue-7);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+}
+.link-title:hover { text-decoration: underline; }
+.bar-mini {
+  display: block;
+  height: 5px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--blue-6), var(--blue-7));
+  margin-top: 5px;
+  opacity: 0.7;
+  transition: width 0.4s;
+}
+.no-results {
+  text-align: center;
+  padding: 40px;
+  color: var(--grey-text);
+  font-size: 14px;
+}
+
+/* ─── CATEGORY KPIs ─── */
+.cat-stats {
+  display: flex;
+  gap: 14px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+}
+.cat-kpi {
+  background: var(--white);
+  border-radius: var(--radius);
+  padding: 14px 20px;
+  box-shadow: var(--shadow);
+  border-left: 4px solid var(--gold);
+  min-width: 150px;
+}
+.cat-kpi .lbl {
+  font-size: 10px;
+  color: var(--grey-text);
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  font-weight: 600;
+}
+.cat-kpi .val {
+  font-size: 26px;
+  font-weight: 700;
+  color: var(--blue-11);
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── HINT ─── */
+.hint {
+  font-size: 11px;
+  color: var(--grey-text);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.hint::before { content: 'ℹ'; font-size: 13px; }
+
+/* ─── EMPTY STATE ─── */
+.empty-panel {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--grey-text);
+}
+.empty-panel .ei { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+
+/* ─── SCROLLBAR ─── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #C8D0E0; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--blue-7); }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 700px) {
+  .panel { padding: 16px; }
+  .header-meta { display: none; }
+  .header { padding: 0 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-inner">
+    <div class="header-brand">
+      <div class="sap-logo">SAP</div>
+      <div class="header-title">
+        <h1>GVA Analytics</h1>
+        <div class="sub">Global Value Advisory &nbsp;·&nbsp; SharePoint Usage Dashboard</div>
+      </div>
+    </div>
+    <div class="header-meta" id="headerMeta"></div>
+  </div>
+</div>
+
+<!-- TAB BAR -->
+<div class="tab-bar-wrap">
+  <div class="tab-bar-scroll">
+    <div class="tab-bar" id="tabBar">
+      <button class="tab-btn active" data-tab="overview" onclick="showTab('overview')">◼ Overview</button>
+    </div>
+  </div>
+</div>
+
+<!-- OVERVIEW PANEL -->
+<div id="p_overview" class="panel active">
+  <div class="kpi-row" id="kpiRow"></div>
+  <div class="chart-row">
+    <div class="chart-box">
+      <div class="section-title">Total Views per Month</div>
+      <canvas id="chartViews" height="120"></canvas>
+    </div>
+    <div class="chart-box">
+      <div class="section-title">Unique Users per Month</div>
+      <canvas id="chartUU" height="120"></canvas>
+    </div>
+  </div>
+  <div class="section-title">Most Visited SitePages &mdash; Last Month</div>
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg class="search-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="6.5" cy="6.5" r="5" stroke="#2A2D36" stroke-width="1.5"/>
+        <path d="M10 10L14 14" stroke="#2A2D36" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      <input type="text" id="overviewSearch" placeholder="Search pages…" oninput="filterOverview(this.value)">
+    </div>
+    <button class="btn-export" onclick="exportOverviewCSV()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 6l3 3 3-3M2 11h10" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Export CSV
+    </button>
+    <span class="filter-count" id="overviewCount"></span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead id="ovThead"></thead>
+      <tbody id="topBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const DATA = {"monthly_totals":[{"month":"2026-01","month_label":"Jan 2026","views":11554,"uu":2143},{"month":"2026-02","month_label":"Feb 2026","views":15161,"uu":2782},{"month":"2026-03","month_label":"Mar 2026","views":14008,"uu":2884}],"top_aspx":[{"title":"Home","url":"https://sap.sharepoint.com/sites/212788/SitePages/Home(1).aspx","views":[943,871,833],"uu":[291,286,284]},{"title":"Tools","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools.aspx","views":[232,234,196],"uu":[100,111,111]},{"title":"FLASH Maturity Assessment","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools/Flash.aspx","views":[92,132,149],"uu":[30,36,66]},{"title":"Business Applications","url":"https://sap.sharepoint.com/sites/212788/SitePages/BusinessApplications.aspx","views":[208,193,138],"uu":[112,117,87]},{"title":"SAP Business AI","url":"https://sap.sharepoint.com/sites/212788/SitePages/TechnologyandData/BusinessAI.aspx","views":[82,85,128],"uu":[38,41,57]},{"title":"SAP Business Data Cloud","url":"https://sap.sharepoint.com/sites/212788/SitePages/TechnologyandData/BusinessDataCloud.aspx","views":[104,127,125],"uu":[39,46,58]},{"title":"Our Team","url":"https://sap.sharepoint.com/sites/212788/SitePages/OurTeam.aspx","views":[143,96,114],"uu":[91,73,78]},{"title":"Customer Strategy Explorer","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools/CustomerStrategyExplorer.aspx","views":[101,135,114],"uu":[39,76,69]},{"title":"SAP Business Transformation Management","url":"https://sap.sharepoint.com/sites/212788/SitePages/TechnologyandData/BusinessTransformationManagement.aspx","views":[59,48,109],"uu":[3,3,13]},{"title":"Spend","url":"https://sap.sharepoint.com/sites/212788/SitePages/BusinessApplications/Spend.aspx","views":[110,110,107],"uu":[49,51,48]},{"title":"Technology & Data","url":"https://sap.sharepoint.com/sites/212788/SitePages/TechnologyandData.aspx","views":[123,107,92],"uu":[66,68,60]},{"title":"Finance","url":"https://sap.sharepoint.com/sites/212788/SitePages/BusinessApplications/Finance.aspx","views":[126,76,88],"uu":[61,40,41]},{"title":"Supply Chain","url":"https://sap.sharepoint.com/sites/212788/SitePages/BusinessApplications/SupplyChain.aspx","views":[53,112,79],"uu":[41,59,48]},{"title":"Guided Business Case","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools/GuidedBusinessCase.aspx","views":[65,63,73],"uu":[45,44,50]},{"title":"Executive Value Brief","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools/ExecutiveValueBrief.aspx","views":[64,78,70],"uu":[30,47,44]},{"title":"Cloud ERP","url":"https://sap.sharepoint.com/sites/212788/SitePages/BusinessApplications/NOT DISPLAYED IN THE MENU - CloudERP.aspx","views":[0,2,64],"uu":[0,2,6]},{"title":"Strategic Conversations Guide","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools/StrategicConversationsGuide.aspx","views":[31,23,60],"uu":[18,17,31]},{"title":"Customer Value Explorer","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools/CustomerValueExplorer.aspx","views":[43,75,58],"uu":[30,38,29]},{"title":"Business Suite","url":"https://sap.sharepoint.com/sites/212788/SitePages/TechnologyandData/NOT DISPLAYED IN THE MENU - BusinessSuite.aspx","views":[2,16,46],"uu":[1,6,7]},{"title":"Performance Benchmarking","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools/PerformanceBenchmarking.aspx","views":[51,30,35],"uu":[37,27,28]},{"title":"LoB - Business Case","url":"https://sap.sharepoint.com/sites/212788/SitePages/BusinessApplications/LoB-BusinessCase.aspx","views":[32,54,33],"uu":[22,31,17]},{"title":"Our Work","url":"https://sap.sharepoint.com/sites/212788/SitePages/OurWork.aspx","views":[61,34,29],"uu":[36,25,22]},{"title":"Move the Needle","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools/MovetheNeedle.aspx","views":[29,14,23],"uu":[17,12,17]},{"title":"Value Starter","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools/ValueStarter.aspx","views":[32,27,22],"uu":[20,18,18]},{"title":"SAP Business Technology Platform","url":"https://sap.sharepoint.com/sites/212788/SitePages/TechnologyandData/BusinessTechnologyPlatform.aspx","views":[31,11,22],"uu":[5,3,4]},{"title":"Human Capital Management Value Advisory","url":"https://sap.sharepoint.com/sites/212788/SitePages/BusinessApplications/HumanCapitalManagement.aspx","views":[44,46,21],"uu":[26,21,15]},{"title":"Value One-Pager","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools/ValueOnePager.aspx","views":[22,13,16],"uu":[15,12,12]},{"title":"Taulia - Working Capital Management","url":"https://sap.sharepoint.com/sites/212788/SitePages/BusinessApplications/NOT-DISPLAYED-IN-THE-MENU--Taulia-sub-page.aspx","views":[0,22,15],"uu":[0,3,3]},{"title":"Learning","url":"https://sap.sharepoint.com/sites/212788/SitePages/Learning.aspx","views":[0,16,13],"uu":[0,2,3]},{"title":"Go-to-Market Kick-Off Meeting 2026 - Global Value Advisory Summary","url":"https://sap.sharepoint.com/sites/212788/SitePages/GlobalValueAdvisoryNEWS/Go-to-Market Kick-Off Meeting 2026 - Global Value Advisory Summary.aspx","views":[0,0,12],"uu":[0,0,5]},{"title":"LOB Discovery Workshop","url":"https://sap.sharepoint.com/sites/212788/SitePages/BusinessApplications/LoB-DiscoveryWorkshop.aspx","views":[30,26,9],"uu":[13,20,9]},{"title":"Global Value Advisory NEWS","url":"https://sap.sharepoint.com/sites/212788/SitePages/GlobalValueAdvisoryNEWS.aspx","views":[0,0,9],"uu":[0,0,1]},{"title":"Go-to-Market Kick-Off Meeting 2026 - Global Value Advisory Summary","url":"https://sap.sharepoint.com/sites/212788/SitePages/Go-to-Market-Kick-Off-Meeting-2026---Global-Value-Advisory-Summary.aspx","views":[0,0,6],"uu":[0,0,4]},{"title":"BDC Value Advisory Communities of Practice and Experts","url":"https://sap.sharepoint.com/sites/212788/SitePages/TechnologyandData/BusinessDataCloud/GlobalandRegionalContacts.aspx","views":[11,14,2],"uu":[7,5,2]},{"title":"New Hire","url":"https://sap.sharepoint.com/sites/212788/SitePages/Learning/NewHire.aspx","views":[0,26,1],"uu":[0,2,1]},{"title":"Customer Experience","url":"https://sap.sharepoint.com/sites/212788/SitePages/BusinessApplications/NOT ACTIVE IN THE MENU - CustomerExperience.aspx","views":[0,3,1],"uu":[0,2,1]},{"title":"Value Calculator","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools/NOT DISPLAYED IN THE MENU - ValueCalculator.aspx","views":[0,1,0],"uu":[0,1,0]},{"title":"BDC (HEADER)","url":"https://sap.sharepoint.com/sites/212788/SitePages/TechnologyandData/TO BE CREATED - BusinessDataCloud-learning.aspx","views":[0,1,0],"uu":[0,1,0]},{"title":"SAP Services","url":"https://sap.sharepoint.com/sites/212788/SitePages/BusinessApplications/NOT DISPLAYED IN THE MENU - SAPServices.aspx","views":[0,1,0],"uu":[0,1,0]},{"title":"Global Value Advisory  - Form Templates","url":"https://sap.sharepoint.com/sites/212788/FormServerTemplates/Forms/All Forms.aspx","views":[0,0,0],"uu":[0,0,0]},{"title":"Global Value Advisory  - Site Assets","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/AllItems.aspx","views":[0,0,0],"uu":[0,0,0]},{"title":"Global Value Advisory  - Documents","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/AllItems.aspx","views":[0,0,0],"uu":[0,0,0]},{"title":"Global Value Advisory  - Site Pages","url":"https://sap.sharepoint.com/sites/212788/SitePages/Forms/ByAuthor.aspx","views":[0,0,0],"uu":[0,0,0]},{"title":"Global Value Advisory  - Events","url":"https://sap.sharepoint.com/sites/212788/Lists/Events/calendar.aspx","views":[0,0,0],"uu":[0,0,0]},{"title":"Global Value Advisory  - Style Library","url":"https://sap.sharepoint.com/sites/212788/Style Library/Forms/AllItems.aspx","views":[0,0,0],"uu":[0,0,0]}],"categories":["?","Business AI","Business Applications","Business Data Cloud","Business Suite","Business Technology Platform","Business Transformation Management","Cloud ERP","Customer Experience","Customer Strategy Explorer","Customer Value Explorer","Executive Value Brief","FLASH","Finance","GVA News","Guided Business Case","Human Capital Management","Learning","Learning - New Hire","Meeting Materials","Move the Needle","Our Team","Our Team / Our Work","Our Work","Performance Benchmarking","Spend","Strategic Conversations Guide","Supply Chain","Technology & Data","Thumbnails & Folders","Tools","Value One-Pager","Value Starter","Who We Are (home)"],"category_data":{"?":[{"title":"GTM KOM 2026 - summary","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=271","views":[0,0,9],"uu":[0,0,7]},{"title":"Value Advisory Q1 2026 All Hands","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=284","views":[0,0,0],"uu":[0,0,0]},{"title":"FDE - VA Enablement March 2026 - consolidated","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/FDE X VA/FDE - VA Enablement March 2026 - consolidated.pptx","views":[0,0,78],"uu":[0,0,42]},{"title":"Title Goes Here and Here and Here","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/LoB Discovery Workshop - Design Thinking Instruction Slides.pptx","views":[0,3,0],"uu":[0,1,0]},{"title":"LoB Discovery Workshop - Rapid Ideation CEE Use Cases","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/LoB Discovery Workshop - Rapid Ideation CEE Use Cases.xlsx","views":[3,0,0],"uu":[1,0,0]},{"title":"Presentation Title","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/CVA - SBN - Template.pptx","views":[9,15,5],"uu":[4,5,3]},{"title":"LoB Business Case - AO Smith - Indirect Procurement​ Collaborative Value Assessment​","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/LoB Business Case - AO Smith - Indirect Procurement​ Collaborative Value Assessment​.pptx","views":[3,3,2],"uu":[1,1,1]},{"title":"LoB Business Case - Beam Suntory - Collaborative​ Value Assessment​","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/LoB Business Case - Beam Suntory - Collaborative​ Value Assessment​.pptx","views":[2,4,2],"uu":[1,2,1]},{"title":"LoB Business Case - Perrigo - Ariba Strategic Sourcing Collaborative​ Value Assessment​","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/LoB Business Case - Perrigo - Ariba Strategic Sourcing Collaborative​ Value Assessment​.pptx","views":[0,6,0],"uu":[0,2,0]},{"title":"LoB Business Case - Shure - Collaborative​ Value Assessment​","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/LoB Business Case - Shure - Collaborative​ Value Assessment​.pptx","views":[0,5,3],"uu":[0,3,1]},{"title":"LoB Discovery - Rapid Ideation CEE Use Cases","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/LoB Discovery - Rapid Ideation CEE Use Cases.xlsx","views":[3,9,0],"uu":[1,2,0]},{"title":"Title Goes Here and Here and Here","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/LoB Discovery- Design Thinking Instruction Slides.pptx","views":[6,8,1],"uu":[1,1,1]},{"title":"LoB Discovery-Stakeholder Interview Guide - INTERNAL ONLY - Fieldglass Included","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/LoB Discovery-Stakeholder Interview Guide - INTERNAL ONLY - Fieldglass Included.xlsm","views":[3,2,6],"uu":[1,1,1]},{"title":"LoB Discovery-Using Personas to Keep the Customer in the Conversation","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/LoB Discovery-Using Personas to Keep the Customer in the Conversation.docx","views":[1,4,0],"uu":[1,2,0]},{"title":"Value Lifecycle Manager - Customer Success Stories","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Value Lifecycle Manager - Customer Success Stories.pdf","views":[0,1,1],"uu":[0,1,1]},{"title":"Commerce Survey_Executive","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Benchmarking Surveys/Exec Offline Excels/Commerce Survey_Executive.xlsx","views":[0,1,0],"uu":[0,1,0]},{"title":"HR Survey","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Benchmarking Surveys/Exec Offline Excels/HR Survey.xlsx","views":[0,0,1],"uu":[0,0,1]},{"title":"Head of HR","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Benchmarking Surveys/Exec Offline Excels/Head of HR.xlsx","views":[2,0,1],"uu":[1,0,1]},{"title":"Marketing Survey_Executive","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Benchmarking Surveys/Exec Offline Excels/Marketing Survey_Executive.xlsx","views":[0,0,2],"uu":[0,0,1]},{"title":"Next Gen HR CHRO Survey_Offline excel","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Benchmarking Surveys/Exec Offline Excels/Next Gen HR CHRO Survey_Offline excel.xlsx","views":[0,0,4],"uu":[0,0,1]},{"title":"Services Procurement_Offline Sheet","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Benchmarking Surveys/Exec Offline Excels/Services Procurement_Offline Sheet.xlsx","views":[0,0,0],"uu":[0,0,0]},{"title":"Sourcing and Procurement Survey_Executive","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Benchmarking Surveys/Exec Offline Excels/Sourcing and Procurement Survey_Executive.xlsx","views":[0,3,1],"uu":[0,1,1]},{"title":"Sourcing and Procurement_ Executive_ Offline_ Survey","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Benchmarking Surveys/Exec Offline Excels/Sourcing and Procurement_ Executive_ Offline_ Survey.xlsx","views":[0,0,0],"uu":[0,0,0]},{"title":"86257-finiance","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=422","views":[0,0,0],"uu":[0,0,0]},{"title":"How-to-Create-a-TCO-Analysis-in-VLM","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=552","views":[0,0,1],"uu":[0,0,1]},{"title":"7. Advanced Conversations with Financial Leaders","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=64","views":[0,0,0],"uu":[0,0,0]},{"title":"Screenshot-2026-03-30-at-1.31.40-PM","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=832","views":[0,0,0],"uu":[0,0,0]},{"title":"CITRICO_SAP-SFSF-Business-Case_translated_es-ES-en-US.pptx","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 4. Human Capital Management/CITRICO_SAP-SFSF-Business-Case_translated_es-ES-en-US.pptx","views":[0,0,0],"uu":[0,0,0]},{"title":"LoB - Business Case","url":"https://sap.sharepoint.com/sites/212788/SitePages/BusinessApplications/LoB-BusinessCase.aspx","views":[32,54,33],"uu":[22,31,17]},{"title":"LOB Discovery Workshop","url":"https://sap.sharepoint.com/sites/212788/SitePages/BusinessApplications/LoB-DiscoveryWorkshop.aspx","views":[30,26,9],"uu":[13,20,9]},{"title":"SAP Services","url":"https://sap.sharepoint.com/sites/212788/SitePages/BusinessApplications/NOT DISPLAYED IN THE MENU - SAPServices.aspx","views":[0,1,0],"uu":[0,1,0]},{"title":"Taulia - Working Capital Management","url":"https://sap.sharepoint.com/sites/212788/SitePages/BusinessApplications/NOT-DISPLAYED-IN-THE-MENU--Taulia-sub-page.aspx","views":[0,22,15],"uu":[0,3,3]},{"title":"Value Calculator","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools/NOT DISPLAYED IN THE MENU - ValueCalculator.aspx","views":[0,1,0],"uu":[0,1,0]}],"Business AI":[{"title":"Business AI - AI feature value estimation approach","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Business AI - AI feature value estimation approach.pptx","views":[20,38,30],"uu":[7,13,11]},{"title":"Business AI - AI in Industry L1 Decks and Executive Overview Decks","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Business AI - AI in Industry L1 Decks and Executive Overview Decks.pptx","views":[40,60,32],"uu":[15,23,14]},{"title":"Business AI - How SAP Business AI multiplies value across your finance organization.PPTX","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Business AI - How SAP Business AI multiplies value across your finance organization.PPTX","views":[24,45,28],"uu":[8,17,9]},{"title":"SAP Business AI Value assets - Best Practices","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/FDE X VA/SAP Business AI Value assets - Best Practices.pptx","views":[0,0,56],"uu":[0,0,29]},{"title":"Business AI - Business Value 3-Pager Template.pptx","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Business AI - Business Value 3-Pager Template.pptx","views":[0,49,17],"uu":[0,7,6]},{"title":"Title goes here and here and here","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Business AI - Bosch - AI Use Cases Value Perspective Short.pptx","views":[19,41,37],"uu":[7,14,9]},{"title":"Business AI - Ericsson - Value Case Summary","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Business AI - Ericsson - Value Case Summary.pptx","views":[41,41,22],"uu":[8,13,10]},{"title":"Business AI - L'Oréal S.A - Customer POV","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Business AI - L'Oréal S.A - Customer POV.pdf","views":[14,19,9],"uu":[6,6,4]},{"title":"Business AI - Use Case Deck.pptx","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Business AI - Use Case Deck.pptx","views":[14,73,66],"uu":[3,23,19]},{"title":"Business AI","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=201","views":[0,0,0],"uu":[0,0,0]},{"title":"SAP Business AI Roadmap Builder","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=487","views":[0,0,0],"uu":[0,0,0]},{"title":"SAP Business AI value Calculator (Internal)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=491","views":[0,0,0],"uu":[0,0,0]},{"title":"How SAP Business AI multiplies value across your finance organization","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=498","views":[0,0,0],"uu":[0,0,0]},{"title":"BusinessAI","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/BusinessAI","views":[0,0,0],"uu":[0,0,0]},{"title":"Technology & Data - 2. Business AI","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 2. Business AI","views":[0,0,0],"uu":[0,0,0]},{"title":"3-pagers_Consolidated_DAMLinks_EXTERNAL_3.4__1_","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 2. Business AI/3-pagers_Consolidated_DAMLinks_EXTERNAL_3.4__1_.pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"Maximizing-Value-Creation-in-LOreal-s-NEO-Program-with-RISE-and-AI-Powered-Innovation","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 2. Business AI/Maximizing-Value-Creation-in-LOreal-s-NEO-Program-with-RISE-and-AI-Powered-Innovation.pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"SAP_Business_AI_Value_Calculator_3.4_INTERNAL__2_","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 2. Business AI/SAP_Business_AI_Value_Calculator_3.4_INTERNAL__2_.xlsx","views":[0,2,0],"uu":[0,1,0]},{"title":"SAP_Business_AI_Value_Calculator_3.4_PARTNER","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 2. Business AI/SAP_Business_AI_Value_Calculator_3.4_PARTNER.xlsx","views":[0,0,0],"uu":[0,0,0]},{"title":"Skill_Identification_Resume","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 2. Business AI/Skill_Identification_Resume.pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"SuccessorRecommenation","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 2. Business AI/SuccessorRecommenation.pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"SAP Business AI","url":"https://sap.sharepoint.com/sites/212788/SitePages/TechnologyandData/BusinessAI.aspx","views":[82,85,128],"uu":[38,41,57]}],"Business Applications":[{"title":"Business Applications","url":"https://sap.sharepoint.com/sites/212788/SitePages/BusinessApplications.aspx","views":[208,193,138],"uu":[112,117,87]}],"Business Data Cloud":[{"title":"Business Data Cloud - BW Rip Replace vs. Lift Shift Innovate Comparison Calculator Details","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Business Data Cloud - BW Rip Replace vs. Lift Shift Innovate Comparison Calculator Details.docx","views":[4,16,13],"uu":[2,8,7]},{"title":"Business Data Cloud - Data Products Characteristics, Benefits, and Essential Guidance for Modern Organizations","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Business Data Cloud - Data Products Characteristics, Benefits, and Essential Guidance for Modern Organizations.pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"Business Data Cloud - How Data Maturity Drives a Data Driven Culture","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Business Data Cloud - How Data Maturity Drives a Data Driven Culture.pdf","views":[1,0,2],"uu":[1,0,1]},{"title":"Business Data Cloud - The Strategic Imperative of Data Maturity and Quality","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Business Data Cloud - The Strategic Imperative of Data Maturity and Quality.pdf","views":[0,2,2],"uu":[0,2,1]},{"title":"SAP Business Data Cloud","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Business Data Cloud L1.pptx","views":[0,7,0],"uu":[0,2,0]},{"title":"SAP Business Data Cloud L2 CA","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Business Data Cloud L2.pptx","views":[3,8,0],"uu":[1,2,0]},{"title":"Data generation has accelerated to produce as much data in the last x years as generated by all of humanity before it …","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Business Data Cloud - Value Framework.pptx","views":[44,62,75],"uu":[8,17,17]},{"title":"Data generation has accelerated to produce as much data in the last x years as generated by all of humanity before it …","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Business Data Cloud - Value of Business Data Cloud.pptx","views":[68,96,95],"uu":[10,31,30]},{"title":"Business Data Cloud - CPF - BW Modernization - Business Case","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Business Data Cloud - CPF - BW Modernization - Business Case.pptx","views":[0,0,3],"uu":[0,0,2]},{"title":"Presentation Title","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Business Data Cloud - Door Opener POV.pptx","views":[16,45,40],"uu":[6,13,12]},{"title":"Business Data Cloud - JTI - Outside-In Value Assessment","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Business Data Cloud - JTI - Outside-In Value Assessment.pptx","views":[0,0,2],"uu":[0,0,1]},{"title":"Business Data Cloud - Value Assessment Output Template","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Business Data Cloud - Value Assessment Output Template.pptx","views":[23,41,0],"uu":[6,13,0]},{"title":"Business Data Cloud - Customer References and Use Cases","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Business Data Cloud - Customer References and Use Cases.pptx","views":[3,14,19],"uu":[1,4,3]},{"title":"Business Data Cloud - PWC whitepaper unlocking business value with sap bdc","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Business Data Cloud - PWC whitepaper unlocking business value with sap bdc.pdf","views":[0,5,7],"uu":[0,4,4]},{"title":"Business Data Cloud - Value Calculator - Data Collection Sheet","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Business Data Cloud - Value Calculator - Data Collection Sheet.xlsx","views":[33,61,35],"uu":[7,13,11]},{"title":"Business Data Cloud - Value Calculator BW Rip Replace vs Lift Shift Innovate Comparison","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Business Data Cloud - Value Calculator BW Rip Replace vs Lift Shift Innovate Comparison.xlsx","views":[19,293,45],"uu":[4,7,10]},{"title":"Business Data Cloud - Value Calculator v2.2","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Business Data Cloud - Value Calculator v2.2.xlsx","views":[0,92,161],"uu":[0,17,26]},{"title":"Small Banner - Business Data Cloud","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=601","views":[0,0,0],"uu":[0,0,0]},{"title":"Data & Analytics - SAP Business Data Cloud (BDC)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=631","views":[0,0,0],"uu":[0,0,0]},{"title":"GlobalandRegionalContacts","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/GlobalandRegionalContacts","views":[0,0,0],"uu":[0,0,0]},{"title":"Technology & Data - 3. Business Data Cloud","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 3. Business Data Cloud","views":[0,0,0],"uu":[0,0,0]},{"title":"Technology & Data - 3. Business Data Cloud - 1. Global and Regional Contacts","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 3. Business Data Cloud - 1. Global and Regional Contacts","views":[0,0,0],"uu":[0,0,0]},{"title":"BDC_Value_Assessment_Output_Template","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 3. Business Data Cloud/BDC_Value_Assessment_Output_Template.pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"BDC_Value_Assessment_Output_Template","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 3. Business Data Cloud/BDC_Value_Assessment_Output_Template.pptx","views":[0,2,1],"uu":[0,1,1]},{"title":"BDC_Value_Calculator-BW_Rip_Replace_vs_Lift_Shift_Innovate_Comparison","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 3. Business Data Cloud/BDC_Value_Calculator-BW_Rip_Replace_vs_Lift_Shift_Innovate_Comparison.xlsx","views":[0,0,1],"uu":[0,0,1]},{"title":"BDC_Value_Calculator_Data_Collection_Sheet__1_","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 3. Business Data Cloud/BDC_Value_Calculator_Data_Collection_Sheet__1_.xlsx","views":[0,0,3],"uu":[0,0,2]},{"title":"BDC_Value_Calculator_v2.0__7_","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 3. Business Data Cloud/BDC_Value_Calculator_v2.0__7_.xlsx","views":[0,0,2],"uu":[0,0,2]},{"title":"BDC_Value_Framework_v2.0","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 3. Business Data Cloud/BDC_Value_Framework_v2.0.xlsx","views":[0,3,10],"uu":[0,2,3]},{"title":"BW_Rip_Replace_vs._Lift_Shift_Innovate_Comparison_Calculator_Details__2_","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 3. Business Data Cloud/BW_Rip_Replace_vs._Lift_Shift_Innovate_Comparison_Calculator_Details__2_.docx","views":[0,0,0],"uu":[0,0,0]},{"title":"BW_Rip_Replace_vs._Lift_Shift_Innovate_Comparison_Calculator_Details__2_","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 3. Business Data Cloud/BW_Rip_Replace_vs._Lift_Shift_Innovate_Comparison_Calculator_Details__2_.pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"Connect-and-harmonize-business-data-to-amplify-the-power-of-AI","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 3. Business Data Cloud/Connect-and-harmonize-business-data-to-amplify-the-power-of-AI.pdf","views":[0,0,1],"uu":[0,0,1]},{"title":"KPMG--Putting-SAP-software-knowledge-at-consultants’-fingertips-to-enrich-client-service-with-SAP-Joule-for-Consultants","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 3. Business Data Cloud/KPMG--Putting-SAP-software-knowledge-at-consultants’-fingertips-to-enrich-client-service-with-SAP-Joule-for-Consultants.pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"SAP-BDC-Services-Sales-Enablement-Guide","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 3. Business Data Cloud/SAP-BDC-Services-Sales-Enablement-Guide.pdf","views":[1,0,1],"uu":[1,0,1]},{"title":"SAP-Business-Data-Cloud-Pricing-and-Packaging","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 3. Business Data Cloud/SAP-Business-Data-Cloud-Pricing-and-Packaging.pdf","views":[0,0,2],"uu":[0,0,2]},{"title":"SAP-Business-Data-Cloud","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 3. Business Data Cloud/SAP-Business-Data-Cloud.pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"SAP Business Data Cloud","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 3. Business Data Cloud/SAP_Business_Data_Cloud_L0_L1.pptx","views":[0,2,1],"uu":[0,1,1]},{"title":"The Value of Business Data Cloud","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 3. Business Data Cloud/The Value of Business Data Cloud.pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"Unraveling-SAP-Business-Data-Cloud","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 3. Business Data Cloud/Unraveling-SAP-Business-Data-Cloud.pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"VA-BDC-Pitch-Deck-creation","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 3. Business Data Cloud/VA-BDC-Pitch-Deck-creation.pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"SAP Business Data Cloud","url":"https://sap.sharepoint.com/sites/212788/SitePages/TechnologyandData/BusinessDataCloud.aspx","views":[104,127,125],"uu":[39,46,58]},{"title":"BDC Value Advisory Communities of Practice and Experts","url":"https://sap.sharepoint.com/sites/212788/SitePages/TechnologyandData/BusinessDataCloud/GlobalandRegionalContacts.aspx","views":[11,14,2],"uu":[7,5,2]},{"title":"BDC (HEADER)","url":"https://sap.sharepoint.com/sites/212788/SitePages/TechnologyandData/TO BE CREATED - BusinessDataCloud-learning.aspx","views":[0,1,0],"uu":[0,1,0]}],"Business Suite":[{"title":"TO BE CREATED - BusinessSuite","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/TO BE CREATED - BusinessSuite","views":[0,0,0],"uu":[0,0,0]},{"title":"Technology & Data - 1. Business Suite - coming soon","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 1. Business Suite - coming soon","views":[0,0,0],"uu":[0,0,0]},{"title":"Business Suite","url":"https://sap.sharepoint.com/sites/212788/SitePages/TechnologyandData/NOT DISPLAYED IN THE MENU - BusinessSuite.aspx","views":[2,16,46],"uu":[1,6,7]}],"Business Technology Platform":[{"title":"Business Technology Platform -  The Business Value with SAP Business Applications","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Business Technology Platform -  The Business Value with SAP Business Applications.pdf","views":[4,5,2],"uu":[2,2,1]},{"title":"Business Technology Platform - CMI Battlecard - Competing against Boomi with SAP Integration Suite","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Business Technology Platform - CMI Battlecard - Competing against Boomi with SAP Integration Suite.pdf","views":[0,4,2],"uu":[0,2,1]},{"title":"Business Technology Platform - CMI Battlecard - Integration Suite","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Business Technology Platform - CMI Battlecard - Integration Suite.pptx","views":[3,4,3],"uu":[1,2,1]},{"title":"Business Technology Platform - Integrate to Innovate","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Business Technology Platform - Integrate to Innovate.pdf","views":[0,7,2],"uu":[0,2,1]},{"title":"SAP Business Technology Platform","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Business Technology Platform - L0 Executive Overview.pptx","views":[3,8,9],"uu":[1,4,5]},{"title":"Business Technology Platform - L1 Executive Overview","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Business Technology Platform - L1 Executive Overview.pptx","views":[26,26,16],"uu":[4,6,5]},{"title":"Business Technology Platform - Strategy Paper","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Business Technology Platform - Strategy Paper.pdf","views":[0,6,3],"uu":[0,2,2]},{"title":"Business Technology Platform - The Value Framework","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Business Technology Platform - Value Framework.pptx","views":[3,5,6],"uu":[1,2,4]},{"title":"Business Technology Platform - Priority Use Cases - One Pager","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Business Technology Platform - Priority Use Cases - One Pager.pdf","views":[0,4,2],"uu":[0,2,1]},{"title":"Business Technology Platform - Product Strategy Template","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Business Technology Platform - Product Strategy Template.pptx","views":[4,8,13],"uu":[1,3,2]},{"title":"Business Technology Platform - Forrester Executive Summary - The Total Economic Impact Of SAP Integration Suite","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Business Technology Platform - Forrester Executive Summary - The Total Economic Impact Of SAP Integration Suite.pdf","views":[0,10,3],"uu":[0,3,2]},{"title":"SAP BTP - Customers Stories for LOBs (CX, DSC, HXM, ISBN)","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Business Technology Platform - LOBs Customer Stories.pptx","views":[0,6,7],"uu":[0,2,3]},{"title":"Artificial Intelligence (AI) - Joule and AI Foundation","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=632","views":[0,0,0],"uu":[0,0,0]},{"title":"Technology & Data - 4. Business Technology Platform - coming soon","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 4. Business Technology Platform - coming soon","views":[0,0,0],"uu":[0,0,0]},{"title":"SAP Business Technology Platform","url":"https://sap.sharepoint.com/sites/212788/SitePages/TechnologyandData/BusinessTechnologyPlatform.aspx","views":[31,11,22],"uu":[5,3,4]}],"Business Transformation Management":[{"title":"Business Transformation Management - SAP Signavio and WalkMe","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Business Transformation Management - SAP Signavio and WalkMe.pptx","views":[0,3,14],"uu":[0,2,8]},{"title":"RISE with SAP - Value Framework","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Business Transformation Management – Mapping KPIs to PPIs Framework.pptx","views":[0,0,6],"uu":[0,0,2]},{"title":"Business Transformation Management – PPI to Value Driver Master Mapping","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Business Transformation Management – PPI to Value Driver Master Mapping.xlsx","views":[0,0,6],"uu":[0,0,3]},{"title":"AI-powered  business transformation with SAP LeanIX,  SAP Signavio and WalkMe","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Business Transformation Management - How to build a transformation capability.pptx","views":[4,0,6],"uu":[2,0,3]},{"title":"Business Transformation Management - Mandatory Refresher SPIDE Enablement Session - Call 1","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Business Transformation Management - Mandatory Refresher SPIDE Enablement Session - Call 1.pptx","views":[0,6,0],"uu":[0,3,0]},{"title":"Business Transformation Management - Mandatory Refresher SPIDE Enablement Session - Call 2","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Business Transformation Management - Mandatory Refresher SPIDE Enablement Session - Call 2.pptx","views":[2,2,0],"uu":[1,1,0]},{"title":"Presentation Title","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Business Transformation Management - SAP Signavio Process Insights & VLM Integration Overview.pptx","views":[0,5,5],"uu":[0,3,3]},{"title":"Business Transformation Management - SAP Signavio road map highlights","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Business Transformation Management - SAP Signavio road map highlights.pptx","views":[4,0,0],"uu":[2,0,0]},{"title":"Business Transformation Management – SAP LeanIX Application Portfolio Management Overview.pptx","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Business Transformation Management – SAP LeanIX Application Portfolio Management Overview.pptx","views":[0,5,0],"uu":[0,1,0]},{"title":"Presentation Title","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Business Transformation Management – WalkMe Digital Adoption for RISE.pptx","views":[0,3,8],"uu":[0,1,3]},{"title":"The Road to the Intelligent Enterprise for GE Oil & Gas Collaborative Value Assessment","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Business Transformation Management – RISE with SAP Proposal Template.pptx","views":[0,6,10],"uu":[0,3,3]},{"title":"Business Tranformation Management - Bugbee Chemicals – Intelligent Chemicals Enterprise Value Case","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Business Tranformation Management - Bugbee Chemicals – Intelligent Chemicals Enterprise Value Case.pdf","views":[1,2,2],"uu":[1,1,1]},{"title":"SAP Business Transformation Management","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Business Transformation Management - Business case by SAP BTM Suite of tools.pptx","views":[15,2,14],"uu":[2,1,4]},{"title":"SAP Signavio Seeding Model @ KPMG  Business Case","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Business Transformation Management - SAP Signavio Seeding Model - KPMG  Business Case.pptx","views":[7,0,7],"uu":[2,0,2]},{"title":"The Road to the Intelligent Enterprise for GE Oil & Gas Collaborative Value Assessment","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Business Transformation Management - Sample Business case for SAP Signavio.pptx","views":[10,2,5],"uu":[1,1,3]},{"title":"2023","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Business Transformation Management - Unum SAP Signavio Business Case.pptx","views":[0,0,5],"uu":[0,0,1]},{"title":"PptxGenJS Presentation","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Business Transformation Management - Value Book.pptx","views":[6,8,2],"uu":[3,3,1]},{"title":"Value of Signavio","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Business Transformation Management – Amgen Signavio LeanIX Value Case.pptx","views":[0,2,7],"uu":[0,1,2]},{"title":"RISE with SAP - Value Framework","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Business Transformation Management – GB Foods Signavio Business Case.pptx","views":[0,2,2],"uu":[0,1,1]},{"title":"Template Base 2021","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Business Transformation Management – Nike Lean Core Value Case.pptx","views":[0,5,0],"uu":[0,2,0]},{"title":"Presentation Title","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Business Transformation Management – Triumph SAP S4HANA Value Assessment.pptx","views":[0,10,6],"uu":[0,3,3]},{"title":"SAP Business Transformation Management","url":"https://sap.sharepoint.com/sites/212788/SitePages/TechnologyandData/BusinessTransformationManagement.aspx","views":[59,48,109],"uu":[3,3,13]}],"Cloud ERP":[{"title":"Clean Core: The Value","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Cloud ERP- Value of Clean Core-20240530.pptx","views":[0,0,10],"uu":[0,0,3]},{"title":"CloudERP - Best In Class List","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/CloudERP - Best In Class List.xlsx","views":[1,10,3],"uu":[1,4,2]},{"title":"CloudERP - RISE VD improvement proof points - Master Data","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/CloudERP - RISE VD improvement proof points - Master Data.xlsx","views":[2,4,4],"uu":[1,2,2]},{"title":"Case for Cloud:  Flywheel Model","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/CloudERP - RISE Value Framework Executive Deck.pptx","views":[0,0,17],"uu":[0,0,6]},{"title":"RISE with SAP_Global Value Advisory","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/CloudERP - RISE with SAP - Applicability of Value Framework.pptx","views":[7,12,2],"uu":[4,8,2]},{"title":"RISE with SAP_Global Value Advisory","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/CloudERP - RISE with SAP - Value Framework.pptx","views":[15,25,19],"uu":[6,11,7]},{"title":"Global Value Advisory - Vikas Gupta","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/CloudERP - RISE with SAP Customer Proof Points.xlsx","views":[0,0,3],"uu":[0,0,1]},{"title":"Transform your IT operating model SAP S/4HANA Cloud Private Edition","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/CloudERP - Transform your IT operating model with S4 Private Edition.pptx","views":[5,18,7],"uu":[3,8,2]},{"title":"CloudERP - Capex vs Opex for Cloud-Based License & Implementation Costs","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/CloudERP - Capex vs Opex for Cloud-Based License & Implementation Costs.pptx","views":[0,0,4],"uu":[0,0,2]},{"title":"Presentation Title","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/CloudERP - Engagement Model.pptx","views":[6,16,9],"uu":[4,9,5]},{"title":"RISE with SAP Business Case in VLM","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/CloudERP - Integrating Flywheel model with VLM business case.pptx","views":[3,10,7],"uu":[2,4,5]},{"title":"Case for Cloud:  Flywheel Model","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/CloudERP - RISE Value Framework Executive Deck.pptx","views":[9,8,2],"uu":[4,6,1]},{"title":"RISE with SAP_Global Value Advisory","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/CloudERP - RISE with SAP - Applicability of Value Framework.pptx","views":[0,0,9],"uu":[0,0,4]},{"title":"Global Value Advisory: RISE with SAP - The Value","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/CloudERP - RISE with SAP benefits over HEC.pptx","views":[0,0,0],"uu":[0,0,0]},{"title":"RISE with SAP Differentiators over Lifet and Shift (@Hyperscalers)","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/CloudERP - RISE with SAP differentiators over Lift and Shift Hyperscalers v2.8.pptx","views":[0,0,2],"uu":[0,0,1]},{"title":"Transform your IT operating model SAP S/4HANA Cloud Private Edition","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/CloudERP - Transform your IT operating model with S4 Private Edition.pptx","views":[0,0,4],"uu":[0,0,3]},{"title":"RISE with SAP Business Case in VLM","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/CloudERP - Integrating Flywheel model with VLM business case.pptx","views":[0,0,3],"uu":[0,0,2]},{"title":"IT Operations Assessment","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Benchmarking Surveys/CloudERP - IT Operations KPI Benchmarking.xlsx","views":[0,0,1],"uu":[0,0,1]},{"title":"Cloud ERP Survey_Executive","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Benchmarking Surveys/Exec Offline Excels/Cloud ERP Survey_Executive.XLSX","views":[0,7,1],"uu":[0,4,1]},{"title":"NGB_S4HANA_Offline Excel_v0.4","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Benchmarking Surveys/Exec Offline Excels/NGB_S4HANA_Offline Excel_v0.4.xlsx","views":[0,0,0],"uu":[0,0,0]},{"title":"Clean Core Maturity Assessment","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Cloud ERP - Clean Core Maturity Assessment_2.0.xlsx","views":[0,0,6],"uu":[0,0,4]},{"title":"Title Goes Here and Here and Here","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Cloud ERP-SAMPLE_Clean_Core_assessment_output_readout_v1.pptx","views":[0,0,4],"uu":[0,0,1]},{"title":"CloudERP - CoSS modeling draft 0.8 dummy data","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/CloudERP - CoSS modeling draft 0.8 dummy data.xlsx","views":[0,0,8],"uu":[0,0,4]},{"title":"CloudERP - E2E Toolchain Calculator","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/CloudERP - E2E Toolchain Calculator.xlsx","views":[0,0,1],"uu":[0,0,1]},{"title":"RISE with SAP, Global Value Advisory","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/CloudERP - RISE Value Calculator - Flywheel Model.xlsx","views":[9,19,63],"uu":[4,6,13]},{"title":"CloudERP - Sustainability Value Benefit - Calculator V1.0 2024Q1","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/CloudERP - Sustainability Value Benefit - Calculator V1.0 2024Q1.xlsx","views":[0,0,2],"uu":[0,0,1]},{"title":"2. Cloud ERP","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=199","views":[0,0,0],"uu":[0,0,0]},{"title":"Business Applications - 6. Cloud ERP - 1. Best-in-class deliverables","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 6. Cloud ERP - 1. Best-in-class deliverables","views":[0,0,0],"uu":[0,0,0]},{"title":"Business Applications - 6. Cloud ERP - 2. RISE Practices","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 6. Cloud ERP - 2. RISE Practices","views":[0,0,0],"uu":[0,0,0]},{"title":"Business Applications - 6. Cloud ERP - coming soon","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 6. Cloud ERP - coming soon","views":[0,0,0],"uu":[0,0,0]},{"title":"20240705_CostOfDoingNothing_PoV_Template-1.6-script","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 6. Cloud ERP - coming soon/20240705_CostOfDoingNothing_PoV_Template-1.6-script.docx","views":[0,0,1],"uu":[0,0,1]},{"title":"20250206_CoSS_modeling_draft-0.8_dummy-data","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 6. Cloud ERP - coming soon/20250206_CoSS_modeling_draft-0.8_dummy-data.xlsx","views":[0,1,0],"uu":[0,1,0]},{"title":"20250206_CostOfStandingStill_PoV_Template-2.0","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 6. Cloud ERP - coming soon/20250206_CostOfStandingStill_PoV_Template-2.0.pptx","views":[0,1,2],"uu":[0,1,1]},{"title":"RISE with SAP Differentiators over Lifet and Shift (@Hyperscalers)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 6. Cloud ERP - coming soon/202504_RISE-with-SAP-differentiators-over-Lift-and-Shift_Hyperscalers_v2.8.pptx","views":[0,1,2],"uu":[0,1,1]},{"title":"Cost-of-Doing-Nothing---SAP-Sapphire--June-2024--script","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 6. Cloud ERP - coming soon/Cost-of-Doing-Nothing---SAP-Sapphire--June-2024--script.docx","views":[0,0,1],"uu":[0,0,1]},{"title":"Title Goes Here and Here and Here","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 6. Cloud ERP - coming soon/Cost-of-Doing-Nothing---SAP-Sapphire--June-2024-.pptx","views":[0,0,0],"uu":[0,0,0]},{"title":"Global Value Advisory: RISE with SAP - The Value","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 6. Cloud ERP - coming soon/RISE-with-SAP-benefits-over-HEC_v1.0.pptx","views":[0,0,0],"uu":[0,0,0]},{"title":"NOT DISPLAYED IN THE MENU - CloudERP","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/NOT DISPLAYED IN THE MENU - CloudERP","views":[0,0,0],"uu":[0,0,0]},{"title":"Transform your IT operating model SAP S/4HANA Cloud Private Edition","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/NOT DISPLAYED IN THE MENU - CloudERP/20240305_Transform-your-IT-operating-model-with-S4-Private-Edition--2-.pptx","views":[0,0,3],"uu":[0,0,1]},{"title":"Capex-vs-Opex-for-Cloud-Based-License---Implementation-Costs--1-","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/NOT DISPLAYED IN THE MENU - CloudERP/Capex-vs-Opex-for-Cloud-Based-License---Implementation-Costs--1-.pptx","views":[0,0,0],"uu":[0,0,0]},{"title":"Presentation Title","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/NOT DISPLAYED IN THE MENU - CloudERP/Innovation-Highlight-Road-Map-SAP-S4HANA-Private-Edition_July_update.pptx","views":[0,0,0],"uu":[0,0,0]},{"title":"Case for Cloud:  Flywheel Model","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/NOT DISPLAYED IN THE MENU - CloudERP/RISE-Value-Framework-Executive-Deck--3-.pptx","views":[0,0,0],"uu":[0,0,0]},{"title":"SAP-Cloud-ERP-Private-Internal-Cheat-Sheet.pptx","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/NOT DISPLAYED IN THE MENU - CloudERP/SAP-Cloud-ERP-Private-Internal-Cheat-Sheet.pptx","views":[0,0,0],"uu":[0,0,0]},{"title":"Sustainability-Value-Benefit---Calculator-V1.0-2024Q1","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/NOT DISPLAYED IN THE MENU - CloudERP/Sustainability-Value-Benefit---Calculator-V1.0-2024Q1.xlsx","views":[0,0,0],"uu":[0,0,0]},{"title":"Cloud ERP","url":"https://sap.sharepoint.com/sites/212788/SitePages/BusinessApplications/NOT DISPLAYED IN THE MENU - CloudERP.aspx","views":[0,2,64],"uu":[0,2,6]}],"Customer Experience":[{"title":"Customer Experience","url":"https://sap.sharepoint.com/sites/212788/SitePages/BusinessApplications/NOT ACTIVE IN THE MENU - CustomerExperience.aspx","views":[0,3,1],"uu":[0,2,1]}],"Customer Strategy Explorer":[{"title":"Customer Strategy Explorer - Introduction","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=36","views":[4,6,3],"uu":[3,5,3]},{"title":"Customer Strategy Explorer - Feature Walkthrough","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=51","views":[1,4,3],"uu":[1,4,2]},{"title":"Executive Value Brief & CSE - Feature Walkthrough","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=71","views":[1,5,1],"uu":[1,4,1]},{"title":"One-Pager","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Customer Strategy Explorer - One-Pager.pdf","views":[4,11,6],"uu":[1,5,4]},{"title":"CSE","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=268","views":[0,0,0],"uu":[0,0,0]},{"title":"X. CSE - logo","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=384","views":[0,0,0],"uu":[0,0,0]},{"title":"Customer Strategy Explorer - 25","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=408","views":[0,0,0],"uu":[0,0,0]},{"title":"Customer Strategy Explorer","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=417","views":[0,0,0],"uu":[0,0,0]},{"title":"CSE","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=465","views":[0,0,0],"uu":[0,0,0]},{"title":"CSE","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=525","views":[0,0,0],"uu":[0,0,0]},{"title":"CSE Feature Walkthrough","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=531","views":[0,0,0],"uu":[0,0,0]},{"title":"Customer Strategy Explorer","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=533","views":[0,0,0],"uu":[0,0,0]},{"title":"8. Customer Strategy Explorer","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=67","views":[0,0,0],"uu":[0,0,0]},{"title":"CSE","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=677","views":[0,0,0],"uu":[0,0,0]},{"title":"CSE","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=797","views":[0,0,0],"uu":[0,0,0]},{"title":"CustomerStrategyExplorer","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/CustomerStrategyExplorer","views":[0,0,0],"uu":[0,0,0]},{"title":"CustomerStrategyExplorer(1)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/CustomerStrategyExplorer(1)","views":[0,0,0],"uu":[0,0,0]},{"title":"Tools - 1.1 Customer Research - Customer Strategy Explorer","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Tools - 1.1 Customer Research - Customer Strategy Explorer","views":[0,0,0],"uu":[0,0,0]},{"title":"2. What is Customer Strategy Explorer","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Tools - 1.1 Customer Research - Customer Strategy Explorer/2. What is Customer Strategy Explorer","views":[0,0,0],"uu":[0,0,0]},{"title":"3. Feature walkthrough","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Tools - 1.1 Customer Research - Customer Strategy Explorer/3. Feature walkthrough","views":[0,0,0],"uu":[0,0,0]},{"title":"4. CSE - One-Pager","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Tools - 1.1 Customer Research - Customer Strategy Explorer/4. CSE - One-Pager.pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"CSE Launch Video ONLY","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Tools - 1.1 Customer Research - Customer Strategy Explorer/CSE Launch Video ONLY","views":[0,0,0],"uu":[0,0,0]},{"title":"2. CSE - One-Pager","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Tools - 1.3 Customer Research - Customer Value Explorer/2. CSE - One-Pager.pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"Customer Strategy Explorer","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools/CustomerStrategyExplorer.aspx","views":[101,135,114],"uu":[39,76,69]}],"Customer Value Explorer":[{"title":"Customer Value Explorer - Feature Walkthrough","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=44","views":[1,4,2],"uu":[1,4,2]},{"title":"Customer Value Explorer - One-Pager","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Customer Value Explorer - One-Pager.pdf","views":[0,3,1],"uu":[0,2,1]},{"title":"CVE Feature Walkthrough","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=532","views":[0,0,0],"uu":[0,0,0]},{"title":"CustomerValueExplorer","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/CustomerValueExplorer","views":[0,0,0],"uu":[0,0,0]},{"title":"Tools - 1.3 Customer Research - Customer Value Explorer","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Tools - 1.3 Customer Research - Customer Value Explorer","views":[0,0,0],"uu":[0,0,0]},{"title":"3. Feature walkthrough","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Tools - 1.3 Customer Research - Customer Value Explorer/3. Feature walkthrough","views":[0,0,0],"uu":[0,0,0]},{"title":"Customer Value Explorer","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools/CustomerValueExplorer.aspx","views":[43,75,58],"uu":[30,38,29]}],"Executive Value Brief":[{"title":"Customer Value Explorer & Executive Value Brief - LKOM 2026 demo","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=269","views":[0,0,0],"uu":[0,0,0]},{"title":"Executive Value Brief - Introduction","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=37","views":[11,5,0],"uu":[3,4,0]},{"title":"Executive Value Brief & CSE - Feature Walkthrough","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=71","views":[1,5,1],"uu":[1,4,1]},{"title":"70375225EVB","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=242","views":[0,0,0],"uu":[0,0,0]},{"title":"Executive Value Brief","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=413","views":[0,0,0],"uu":[0,0,0]},{"title":"ExecutiveValueBrief","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/ExecutiveValueBrief","views":[0,0,0],"uu":[0,0,0]},{"title":"Tools - 1.2 Customer Research - Executive Value Brief","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Tools - 1.2 Customer Research - Executive Value Brief","views":[0,0,0],"uu":[0,0,0]},{"title":"Executive Value Brief","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools/ExecutiveValueBrief.aspx","views":[64,78,70],"uu":[30,47,44]}],"FLASH":[{"title":"FLASH - How to Use FLASH","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=35","views":[0,0,2],"uu":[0,0,2]},{"title":"FLASH - How to Share a FLASH Maturity Assessment","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=42","views":[0,0,0],"uu":[0,0,0]},{"title":"FLASH - Introduction (video)","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=76","views":[0,0,10],"uu":[0,0,10]},{"title":"FLASH - Assessment Report and Engagement Steps","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=78","views":[0,0,4],"uu":[0,0,3]},{"title":"FLASH - for Customer Success Managers (role card)","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/FLASH - for Customer Success Managers (role card).pptx","views":[15,43,28],"uu":[4,10,9]},{"title":"FLASH - for Sales (role card)","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/FLASH - for Sales (role card).pptx","views":[20,38,12],"uu":[6,6,4]},{"title":"FLASH - for Value, Industry and Digital Value Advisors (role card)","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/FLASH - for Value, Industry and Digital Value Advisors (role card).pptx","views":[33,39,27],"uu":[9,11,8]},{"title":"FLASH - Business Capability Connection to ​Products Guide​","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/FLASH - Business Capability Connection to ​Products Guide​.pptx","views":[5,4,1],"uu":[3,2,1]},{"title":"FLASH - Enterprise Business Capability Connection to Product Capabilities","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/FLASH - Enterprise Business Capability Connection to Product Capabilities.pptx","views":[0,0,12],"uu":[0,0,3]},{"title":"FLASH - FAQ","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/FLASH - FAQ.pptx","views":[14,28,24],"uu":[5,8,7]},{"title":"Template Base 2021","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/FLASH - How to Use FLASH.pptx","views":[6,32,46],"uu":[2,9,11]},{"title":"FLASH - When to Use FLASH, GVA and Other Tools","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/FLASH - When to Use FLASH, GVA and Other Tools.pptx","views":[15,16,36],"uu":[5,6,13]},{"title":"FLASH - BoyleSports - VA Case Study_ - HR Transformation_","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/FLASH - BoyleSports - VA Case Study_ - HR Transformation_.pptx","views":[0,22,6],"uu":[0,6,3]},{"title":"FLASH - Royal Commission of Al Ula - CSM Case Study - HR Transformation","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/FLASH - Royal Commission of Al Ula - CSM Case Study - HR Transformation.pdf","views":[2,22,20],"uu":[1,6,6]},{"title":"FLASH - Stepan - CSM Case Study - Employee Experience_","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/FLASH - Stepan - CSM Case Study - Employee Experience_.pptx","views":[0,27,23],"uu":[0,6,8]},{"title":"Flash","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Flash","views":[0,0,0],"uu":[0,0,0]},{"title":"Tools - 3.1 Benchmarking - FLASH","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Tools - 3.1 Benchmarking - FLASH","views":[0,0,0],"uu":[0,0,0]},{"title":"FLASH Maturity Assessment","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools/Flash.aspx","views":[92,132,149],"uu":[30,36,66]}],"Finance":[{"title":"Finance - SAP Avatar Whiteboard Video","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=34","views":[1,1,0],"uu":[1,1,0]},{"title":"Finance 101 (25 mins)","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=45","views":[0,0,0],"uu":[0,0,0]},{"title":"Finance - EBS Executive Summary","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Finance - EBS Executive Summary.docx","views":[3,4,1],"uu":[2,2,1]},{"title":"Finance - EBS Whitepaper Detail Writeup","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Finance - EBS Whitepaper Detail Writeup.docx","views":[1,8,1],"uu":[1,2,1]},{"title":"Title Goes Here and Here and Here","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Finance - Overview - Golden Deck - External Facing.pptx","views":[0,31,8],"uu":[0,8,3]},{"title":"Finance - Transform to Intelligent Finance with SAP Solutions.pptx","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Finance - Transform to Intelligent Finance with SAP Solutions.pptx","views":[21,17,5],"uu":[7,6,2]},{"title":"Presentation Title","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Finance - Can't Escape AI.IMA (webinar).pptx","views":[4,7,3],"uu":[1,2,1]},{"title":"Title Goes Here and Here and Here","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Finance - Golden Deck Internal Training.pptx","views":[17,11,10],"uu":[6,4,3]},{"title":"Presentation Title","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Finance - Mergers Acquisitions Divestitures w SAP.pptx","views":[3,20,6],"uu":[2,5,3]},{"title":"Finance - POV Playbook","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Finance - POV Playbook.pptx","views":[50,41,28],"uu":[17,11,11]},{"title":"Template Base 2021","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Finance - Saudi Aramco Central FIN - USE Cases.pptx","views":[5,13,7],"uu":[2,5,4]},{"title":"Template Base 2021","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Finance - CVA Template.pptx","views":[17,34,19],"uu":[6,11,10]},{"title":"Finance - POV Template","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Finance - POV Template.pptx","views":[109,77,71],"uu":[30,17,19]},{"title":"Finance Survey_Executive","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Benchmarking Surveys/Exec Offline Excels/Finance Survey_Executive.xlsx","views":[0,5,4],"uu":[0,2,1]},{"title":"Finance Survey_Executive_31May2018","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Benchmarking Surveys/Exec Offline Excels/Finance Survey_Executive_31May2018.xlsx","views":[0,5,0],"uu":[0,1,0]},{"title":"Finance ROI Model - V0 - December 2025","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Finance - ROI Model.xlsx","views":[238,146,191],"uu":[34,24,26]},{"title":"2. Finance","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=196","views":[0,0,0],"uu":[0,0,0]},{"title":"Finance-ROI","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=486","views":[0,0,0],"uu":[0,0,0]},{"title":"Finance-ROI","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=524","views":[0,0,0],"uu":[0,0,0]},{"title":"Business Applications - 2. Finance","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 2. Finance","views":[0,0,0],"uu":[0,0,0]},{"title":"6. Executive Summary Shared Services (whitepaper)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 2. Finance/6. Executive Summary Shared Services (whitepaper).pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"6. Shared Services Detail Writeup (whitepaper)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 2. Finance/6. Shared Services Detail Writeup (whitepaper).pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"6. Transform to Intelligent Finance with SAP Solutions.pptx","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 2. Finance/6. Transform to Intelligent Finance with SAP Solutions.pptx","views":[0,0,0],"uu":[0,0,0]},{"title":"7. Learning & Enablement","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 2. Finance/7. Learning & Enablement","views":[0,0,0],"uu":[0,0,0]},{"title":"Finance-Golden-Deck----External-Facing-Finance-LoB-----Read-Only","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 2. Finance/7. Learning & Enablement/Finance-Golden-Deck----External-Facing-Finance-LoB-----Read-Only.pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"Finance-Golden-Deck-Internal-Training","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 2. Finance/7. Learning & Enablement/Finance-Golden-Deck-Internal-Training.pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"8. Tools","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 2. Finance/8. Tools","views":[0,0,0],"uu":[0,0,0]},{"title":"TO BE CHECKED","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 2. Finance/TO BE CHECKED","views":[0,0,0],"uu":[0,0,0]},{"title":"FSI---Rise-with-SAP-Value-Proposition--Finance-Focused-","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 2. Finance/TO BE CHECKED/FSI---Rise-with-SAP-Value-Proposition--Finance-Focused-.pdf","views":[0,1,0],"uu":[0,1,0]},{"title":"Transform-to-Intelligent-Finance-with-SAP-Solutions-V1.pptx","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 2. Finance/TO BE CHECKED/Transform-to-Intelligent-Finance-with-SAP-Solutions-V1.pptx","views":[0,0,0],"uu":[0,0,0]},{"title":"Finance","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Finance","views":[0,0,0],"uu":[0,0,0]},{"title":"Finance","url":"https://sap.sharepoint.com/sites/212788/SitePages/BusinessApplications/Finance.aspx","views":[126,76,88],"uu":[61,40,41]}],"GVA News":[{"title":"Wiktoria 1 (news)","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=272","views":[0,0,0],"uu":[0,0,0]},{"title":"GlobalValueAdvisoryNEWS","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/GlobalValueAdvisoryNEWS","views":[0,0,0],"uu":[0,0,0]},{"title":"GlobalValueAdvisoryNEWS","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/GlobalValueAdvisoryNEWS","views":[0,0,0],"uu":[0,0,0]},{"title":"GlobalValueAdvisoryNEWS","url":"https://sap.sharepoint.com/sites/212788/SitePages/GlobalValueAdvisoryNEWS","views":[0,0,0],"uu":[0,0,0]},{"title":"Global Value Advisory NEWS","url":"https://sap.sharepoint.com/sites/212788/SitePages/GlobalValueAdvisoryNEWS.aspx","views":[0,0,9],"uu":[0,0,1]},{"title":"Go-to-Market Kick-Off Meeting 2026 - Global Value Advisory Summary","url":"https://sap.sharepoint.com/sites/212788/SitePages/GlobalValueAdvisoryNEWS/Go-to-Market Kick-Off Meeting 2026 - Global Value Advisory Summary.aspx","views":[0,0,12],"uu":[0,0,5]}],"Guided Business Case":[{"title":"Guided Business Case - Feature Walkthrough","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=43","views":[0,0,7],"uu":[0,0,5]},{"title":"Guided Business Case - Overview Training (video)","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=55","views":[0,0,0],"uu":[0,0,0]},{"title":"Guided Business Case - Introduction","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=80","views":[3,4,7],"uu":[3,4,4]},{"title":"Guided Business Case - Overview","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Guided Business Case - Overview.pdf","views":[9,26,12],"uu":[4,10,4]},{"title":"Guided Business Case - RISE with SAP Business Case Template","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Guided Business Case - RISE with SAP Business Case Template.pdf","views":[12,21,14],"uu":[6,10,6]},{"title":"Guided Business Case - ADVEO - Customer Story","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Guided Business Case - ADVEO - Customer Story.pdf","views":[2,4,2],"uu":[1,2,1]},{"title":"Guided Business Case - Customer Success Stories Flipbook","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Guided Business Case - Customer Success Stories Flipbook.pdf","views":[1,8,2],"uu":[1,4,1]},{"title":"Performance Benchmarking & Guided Business Case - Beyond Technologies (Stelpro) - Customer Story","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Performance Benchmarking & Guided Business Case - Beyond Technologies (Stelpro) - Customer Story.pdf","views":[2,7,0],"uu":[1,2,0]},{"title":"Performance Benchmarking & Guided Business Case - NADEC - Journey to Intelligent Enterprise","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Performance Benchmarking & Guided Business Case - NADEC - Journey to Intelligent Enterprise.pdf","views":[0,8,2],"uu":[0,2,1]},{"title":"Guided Business Case","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=407","views":[0,0,0],"uu":[0,0,0]},{"title":"GuidedBusinessCase","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/GuidedBusinessCase","views":[0,0,0],"uu":[0,0,0]},{"title":"Tools - 4. Guided Business Case","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Tools - 4. Guided Business Case","views":[0,0,0],"uu":[0,0,0]},{"title":"Guided Business Case","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools/GuidedBusinessCase.aspx","views":[65,63,73],"uu":[45,44,50]}],"Human Capital Management":[{"title":"Human Capital Management - Addressing Perennial HR Challenges with Human Capital Management Technology","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Human Capital Management - Addressing Perennial HR Challenges with Human Capital Management Technology.pdf","views":[5,8,5],"uu":[2,3,2]},{"title":"Presentation Title","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Human Capital Management - DVA NA Enablement Presentation Material MASTER.pptx","views":[3,6,9],"uu":[1,2,1]},{"title":"Title goes here and here and here","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Human Capital Management - Partner enablement.pptx","views":[0,7,6],"uu":[0,2,2]},{"title":"Human Capital Management - CITRICO - SAP SFSF Business Case translated es ES en US.pptx","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Human Capital Management - CITRICO - SAP SFSF Business Case translated es ES en US.pptx","views":[4,13,6],"uu":[1,4,1]},{"title":"Presentation Title","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Human Capital Management - DO POV template Emea 2024Q4.pptx","views":[6,16,8],"uu":[2,4,2]},{"title":"Human Capital Management - SAP Business AI Value Calculator","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Human Capital Management - SAP Business AI Value Calculator.xlsx","views":[35,57,12],"uu":[6,11,3]},{"title":"2. Human Capital Management","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=192","views":[0,0,0],"uu":[0,0,0]},{"title":"Global Community of HCM Value Advisors","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=303","views":[0,0,0],"uu":[0,0,0]},{"title":"The value of HCM Research paper","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=604","views":[0,0,0],"uu":[0,0,0]},{"title":"copy-(1)-Global Community of HCM Value Advisors-411490","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=605","views":[0,0,0],"uu":[0,0,0]},{"title":"Business Applications - 4. Human Capital Management","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 4. Human Capital Management","views":[0,0,0],"uu":[0,0,0]},{"title":"Title goes here and here and here","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 4. Human Capital Management/BE-Partners_Value-of-SF-20250318d.pptx","views":[0,0,0],"uu":[0,0,0]},{"title":"Presentation Title","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 4. Human Capital Management/HXM-DO-POV_template.pptx","views":[0,0,0],"uu":[0,0,0]},{"title":"Presentation Title","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 4. Human Capital Management/HXM-DVA-NA-Enablement.pptx","views":[0,0,0],"uu":[0,0,0]},{"title":"Human Capital Management Value Advisory","url":"https://sap.sharepoint.com/sites/212788/SitePages/BusinessApplications/HumanCapitalManagement.aspx","views":[44,46,21],"uu":[26,21,15]}],"Learning":[{"title":"Learning","url":"https://sap.sharepoint.com/sites/212788/SitePages/Learning.aspx","views":[0,16,13],"uu":[0,2,3]}],"Learning - New Hire":[{"title":"Learning - 1. New Hire","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Learning - 1. New Hire","views":[0,0,0],"uu":[0,0,0]},{"title":"New Hire","url":"https://sap.sharepoint.com/sites/212788/SitePages/Learning/NewHire.aspx","views":[0,26,1],"uu":[0,2,1]}],"Meeting Materials":[{"title":"Value Advisory All Hands Call","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Value Advisory All Hands Call","views":[0,0,0],"uu":[0,0,0]},{"title":"2026 Q1","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Value Advisory All Hands Call/2026 Q1","views":[0,0,0],"uu":[0,0,0]},{"title":"VA All Hands_March 2026","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Value Advisory All Hands Call/2026 Q1/VA All Hands_March 2026.pptx","views":[0,0,136],"uu":[0,0,60]},{"title":"Go-to-Market Kick-Off Meeting 2026 - Global Value Advisory Summary","url":"https://sap.sharepoint.com/sites/212788/SitePages/Go-to-Market-Kick-Off-Meeting-2026---Global-Value-Advisory-Summary.aspx","views":[0,0,6],"uu":[0,0,4]}],"Move the Needle":[{"title":"Move the Needle - Introduction","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=39","views":[0,1,3],"uu":[0,1,2]},{"title":"Move the Needle - FAQ","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Move the Needle - FAQ.pdf","views":[1,5,2],"uu":[1,2,1]},{"title":"Move the Needle - Overview & Step by Step Manual","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Move the Needle - Overview & Step by Step Manual.pptx","views":[0,12,4],"uu":[0,2,2]},{"title":"Move the Needle - Sample Output.pptx","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Move the Needle - Sample Output.pptx","views":[0,2,0],"uu":[0,1,0]},{"title":"Microsoft PowerPoint - KPIs By Industry-vf-22-12-06.pptx","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Move The Needle - KPIs Metrics for Comparison by Industry.pptx","views":[12,11,14],"uu":[3,3,3]},{"title":"Move The Needle - Sample Output.pptx","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Move The Needle - Sample Output.pptx","views":[7,14,12],"uu":[2,3,4]},{"title":"4. MTN FAQ Document - sap version","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=299","views":[0,0,0],"uu":[0,0,0]},{"title":"Move the Needle (MTN)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=406","views":[0,0,0],"uu":[0,0,0]},{"title":"MovetheNeedle","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/MovetheNeedle","views":[0,0,0],"uu":[0,0,0]},{"title":"Tools - 2.1 Outside-In Analysis - Move the Needle","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Tools - 2.1 Outside-In Analysis - Move the Needle","views":[0,0,0],"uu":[0,0,0]},{"title":"Move the Needle","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools/MovetheNeedle.aspx","views":[29,14,23],"uu":[17,12,17]}],"Our Team":[{"title":"5. Our Team","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=219","views":[0,0,0],"uu":[0,0,0]},{"title":"Who We Are - 1. Our Team","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Who We Are - 1. Our Team","views":[0,0,0],"uu":[0,0,0]}],"Our Team / Our Work":[{"title":"Our Team","url":"https://sap.sharepoint.com/sites/212788/SitePages/OurTeam.aspx","views":[143,96,114],"uu":[91,73,78]},{"title":"Our Work","url":"https://sap.sharepoint.com/sites/212788/SitePages/OurWork.aspx","views":[61,34,29],"uu":[36,25,22]}],"Our Work":[{"title":"copy-(1)-2. Who We Are - used-416966","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=591","views":[0,0,0],"uu":[0,0,0]},{"title":"Who We Are - 2. Our Work","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Who We Are - 2. Our Work","views":[0,0,0],"uu":[0,0,0]}],"Performance Benchmarking":[{"title":"Performance Benchmarking - Scorecard Launch (video)","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=30","views":[0,0,0],"uu":[0,0,0]},{"title":"Performance Benchmarking - Introduction","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=57","views":[3,1,2],"uu":[3,1,2]},{"title":"Performance Benchmarking - Overview","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Performance Benchmarking - Overview.pdf","views":[2,17,17],"uu":[1,9,7]},{"title":"Performance Benchmarking - Scorecard Launch (presentation)","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Performance Benchmarking - Scorecard Launch (presentation).pdf","views":[2,8,14],"uu":[2,4,6]},{"title":"Performance Benchmarking - Kemira – Sustainable Growth Focus","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Performance Benchmarking - Kemira – Sustainable Growth Focus.pdf","views":[0,4,0],"uu":[0,2,0]},{"title":"Performance Benchmarking - Magnum Tires – Driving Customer Value","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Performance Benchmarking - Magnum Tires – Driving Customer Value.pdf","views":[0,7,0],"uu":[0,3,0]},{"title":"Performance Benchmarking - Oliver Healthcare Packaging - Customer Story","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Performance Benchmarking - Oliver Healthcare Packaging - Customer Story.pdf","views":[0,4,0],"uu":[0,2,0]},{"title":"Performance Benchmarking - Royal Swinkels Family Brewers – Business Value Outcomes","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Performance Benchmarking - Royal Swinkels Family Brewers – Business Value Outcomes.pdf","views":[0,4,0],"uu":[0,2,0]},{"title":"PerformanceBenchmarking","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/PerformanceBenchmarking","views":[0,0,0],"uu":[0,0,0]},{"title":"Tools - 3.2 Benchmarking - Performance Benchmarking","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Tools - 3.2 Benchmarking - Performance Benchmarking","views":[0,0,0],"uu":[0,0,0]},{"title":"Performance Benchmarking","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools/PerformanceBenchmarking.aspx","views":[51,30,35],"uu":[37,27,28]}],"Spend":[{"title":"Spend - Accelerate the Power of Strategic Procurement - Turn Insights into Action","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Spend - Accelerate the Power of Strategic Procurement - Turn Insights into Action.pdf","views":[5,15,0],"uu":[1,5,0]},{"title":"Buying Channel Strategy_Master_Deck_Final_Version_V1  -  Read-Only","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Spend - Buying Channel Discussion Guide.pptx","views":[12,22,16],"uu":[3,7,6]},{"title":"Spend - The Hackett Group’s - 2025 Procurement Agenda and Key Issues Study Results","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Spend - The Hackett Group’s - 2025 Procurement Agenda and Key Issues Study Results.pdf","views":[0,15,5],"uu":[0,6,2]},{"title":"Spend - Buying Channel Discussion Guide","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Spend - Buying Channel Discussion Guide.pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"Title Goes Here and Here and Here","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Spend - VA L2W Toolkit (presentation).pptx","views":[4,8,0],"uu":[2,3,0]},{"title":"Spend - NIKE - Example of Customer POV","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Spend - NIKE - Example of Customer POV.pptx","views":[36,31,10],"uu":[12,8,4]},{"title":"Spend CVA Template V202601","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Spend - ISBN CVA Template.pptx","views":[51,56,68],"uu":[12,18,16]},{"title":"Short Presentation Title","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Spend - ISBN Proposal Book Template.pptx","views":[33,25,4],"uu":[11,6,2]},{"title":"Spend - POV Template","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Spend - POV Template.pptx","views":[43,92,38],"uu":[15,23,13]},{"title":"Spend ROI Model v202601","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Spend - ROI Model.xlsx","views":[148,268,96],"uu":[27,33,25]},{"title":"2. Spend","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=194","views":[0,0,0],"uu":[0,0,0]},{"title":"99550-banner_SPEND","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=292","views":[0,0,0],"uu":[0,0,0]},{"title":"Spend-ROI","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=433","views":[0,0,0],"uu":[0,0,0]},{"title":"Spend-ROI","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=479","views":[0,0,0],"uu":[0,0,0]},{"title":"CVE","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=798","views":[0,0,0],"uu":[0,0,0]},{"title":"Business Applications - 1. Spend","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 1. Spend","views":[0,0,0],"uu":[0,0,0]},{"title":"Business Applications - 1. Spend  - 1. LoB Discovery Workshop","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 1. Spend  - 1. LoB Discovery Workshop","views":[0,0,0],"uu":[0,0,0]},{"title":"Business Applications - 1. Spend  - 2. LoB Business Case Section","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 1. Spend  - 2. LoB Business Case Section","views":[0,0,0],"uu":[0,0,0]},{"title":"Accelerate-the-Power-of-Strategic-Procurement_-Turn-Insights-into-Action","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 1. Spend/Accelerate-the-Power-of-Strategic-Procurement_-Turn-Insights-into-Action.pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"Buying-Channel-Discussion-Guide-PDF","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 1. Spend/Buying-Channel-Discussion-Guide-PDF.pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"The-Hackett-Group’s-2025-Procurement-Agenda-and-Key-Issues-Study-Results","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 1. Spend/The-Hackett-Group’s-2025-Procurement-Agenda-and-Key-Issues-Study-Results.pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"VA-L2W-Toolkit-H2-2025---PDF","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 1. Spend/VA-L2W-Toolkit-H2-2025---PDF.pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"Spend","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Spend","views":[0,0,0],"uu":[0,0,0]},{"title":"Buying-Channel-Discussion-Guide-PDF","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Spend/Buying-Channel-Discussion-Guide-PDF.pdf","views":[0,0,2],"uu":[0,0,1]},{"title":"SAP Ariba PPT Template","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Spend/Buying-Channel-Strategy_Master_Deck_Final_Version_V1.pptx","views":[0,0,0],"uu":[0,0,0]},{"title":"Common-Data-Collection-Template_V8","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Spend/Common-Data-Collection-Template_V8.xlsb","views":[0,0,6],"uu":[0,0,3]},{"title":"SAP Ariba Supplier Data Matching & Classification Service Overview","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Spend/SAP-Ariba-Supplier-Data-Matching---Classification-Service.pptx","views":[0,0,6],"uu":[0,0,2]},{"title":"SDMC-Request-Form-V7","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Spend/SDMC-Request-Form-V7.xlsb","views":[0,0,0],"uu":[0,0,0]},{"title":"Spend","url":"https://sap.sharepoint.com/sites/212788/SitePages/BusinessApplications/Spend.aspx","views":[110,110,107],"uu":[49,51,48]}],"Strategic Conversations Guide":[{"title":"Strategic Conversations Guide - Overview","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Strategic Conversations Guide - Overview.pptx","views":[0,7,8],"uu":[0,3,3]},{"title":"Strategic Conversations Guide (SCG)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=414","views":[0,0,0],"uu":[0,0,0]},{"title":"3148912082-298941_synchronize_blue","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=737","views":[0,0,0],"uu":[0,0,0]},{"title":"Presentation Title","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Tools - 1.4 Customer Research - Strategic Conversations Guide/3. Strategic Conversations Guide - Overview.pptx","views":[0,0,0],"uu":[0,0,0]},{"title":"Strategic Conversations Guide","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools/StrategicConversationsGuide.aspx","views":[31,23,60],"uu":[18,17,31]}],"Supply Chain":[{"title":"Title Goes Here and Here and Here","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/General Assets/Supply Chain - SAP AI for DSC VA.pptx","views":[0,22,0],"uu":[0,8,0]},{"title":"Title Goes Here and Here and Here","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Supply Chain - VA L2W Toolkit - Presentation.pptx","views":[13,13,0],"uu":[4,5,0]},{"title":"LoB Business Case (Supply Chain) - Entegris - Supply Chain Collaboration Collaborative​ Value Assessment​","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/LoB Business Case (Supply Chain) - Entegris - Supply Chain Collaboration Collaborative​ Value Assessment​.pptx","views":[2,0,0],"uu":[1,0,0]},{"title":"LoB Business Case (Supply Chain) - Johnson Controls International - Collaborative​ Value Assessment​","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/LoB Business Case (Supply Chain) - Johnson Controls International - Collaborative​ Value Assessment​.pptx","views":[0,3,0],"uu":[0,1,0]},{"title":"Supply Chain - Entegris Supply Chain Collaboration CVA","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Supply Chain - Entegris Supply Chain Collaboration CVA.pptx","views":[12,20,5],"uu":[5,6,2]},{"title":"Presentation Title","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Supply Chain - CVA SBN Template.pptx","views":[26,79,35],"uu":[10,23,13]},{"title":"Supply Chain Survey_Executive","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Benchmarking Surveys/Exec Offline Excels/Supply Chain Survey_Executive.xlsx","views":[0,0,0],"uu":[0,0,0]},{"title":"NGB Supply Chain Deep Dive Survey","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Benchmarking Surveys/Exec Offline Excels/Sustainability Assessment_Automotive_Offline_Excel.xlsx","views":[0,0,0],"uu":[0,0,0]},{"title":"NGB Supply Chain Deep Dive Survey","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Benchmarking Surveys/Exec Offline Excels/Sustainability Assessment_CP_Offline_Excel.xlsx","views":[0,0,0],"uu":[0,0,0]},{"title":"NGB Supply Chain Deep Dive Survey","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Benchmarking Surveys/Exec Offline Excels/Sustainability Assessment_IM&C_Offline_Excel.xlsx","views":[0,0,0],"uu":[0,0,0]},{"title":"NGB Supply Chain Deep Dive Survey","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Benchmarking Surveys/Exec Offline Excels/Sustainability Assessment_Retail_Offline_Excel.xlsx","views":[0,0,0],"uu":[0,0,0]},{"title":"NGB Supply Chain Deep Dive Survey","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Benchmarking Surveys/Exec Offline Excels/Sustainability Assessment_Utilities_Offline_Excel.xlsx","views":[0,0,0],"uu":[0,0,0]},{"title":"SCM ROI Model v202601","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Tools/Supply Chain - ROI Model.xlsx","views":[42,190,97],"uu":[12,34,29]},{"title":"2. Supply Chain","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=197","views":[0,0,0],"uu":[0,0,0]},{"title":"Opportunity-Story---SCM","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=228","views":[0,0,0],"uu":[0,0,0]},{"title":"59309-banner_supply-chain","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=236","views":[0,0,0],"uu":[0,0,0]},{"title":"SCM-ROI","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=243","views":[0,0,0],"uu":[0,0,0]},{"title":"53859-Supply-chain","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=255","views":[0,0,0],"uu":[0,0,0]},{"title":"SCM-ROI-Model-Pic","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=267","views":[0,0,0],"uu":[0,0,0]},{"title":"SCM-ROI","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=484","views":[0,0,0],"uu":[0,0,0]},{"title":"Business Applications - 3. Supply Chain","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 3. Supply Chain","views":[0,0,0],"uu":[0,0,0]},{"title":"SupplyChain","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/SupplyChain","views":[0,0,0],"uu":[0,0,0]},{"title":"Supply Chain","url":"https://sap.sharepoint.com/sites/212788/SitePages/BusinessApplications/SupplyChain.aspx","views":[53,112,79],"uu":[41,59,48]}],"Technology & Data":[{"title":"Technology & Data","url":"https://sap.sharepoint.com/sites/212788/SitePages/TechnologyandData.aspx","views":[123,107,92],"uu":[66,68,60]}],"Thumbnails & Folders":[{"title":"5. BeyondTech Stelpro - Internal Customer Story - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=153","views":[0,0,0],"uu":[0,0,0]},{"title":"4. Guided Business Case Demo Video - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=154","views":[0,0,0],"uu":[0,0,0]},{"title":"5. ADVEO - Internal Customer Story - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=155","views":[0,0,0],"uu":[0,0,0]},{"title":"4. RISE with SAP Enablement Video Session - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=156","views":[0,0,0],"uu":[0,0,0]},{"title":"4. Guided Business Case (video) - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=157","views":[0,0,0],"uu":[0,0,0]},{"title":"5. NADEC - Journey to Intelligent Enterprise - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=158","views":[0,0,0],"uu":[0,0,0]},{"title":"5. Digital Tools and Perseverance Help Close Tough Deal - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=161","views":[0,0,0],"uu":[0,0,0]},{"title":"4. Business Case Do's and Don'ts Video - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=163","views":[0,0,0],"uu":[0,0,0]},{"title":"BTP","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=203","views":[0,0,0],"uu":[0,0,0]},{"title":"5. Technology and data - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=210","views":[0,0,0],"uu":[0,0,0]},{"title":"1745170789EVB","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=227","views":[0,0,0],"uu":[0,0,0]},{"title":"CVE - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=246","views":[0,0,0],"uu":[0,0,0]},{"title":"4. FLASH Engagement Model (internal) - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=330","views":[0,0,0],"uu":[0,0,0]},{"title":"6. FLASH for Value Advisory - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=331","views":[0,0,0],"uu":[0,0,0]},{"title":"4. How to Access an Assessment Owned by Someone Else - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=332","views":[0,0,0],"uu":[0,0,0]},{"title":"4. How to Use FLASH - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=333","views":[0,0,0],"uu":[0,0,0]},{"title":"4. FLASH FAQs - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=334","views":[0,0,0],"uu":[0,0,0]},{"title":"6. FLASH for Customer Success - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=336","views":[0,0,0],"uu":[0,0,0]},{"title":"5. FLASH with Royal Commission of Al Ula (CSM) - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=337","views":[0,0,0],"uu":[0,0,0]},{"title":"5. FLASH with BoyleSports (Value Advisory) - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=338","views":[0,0,0],"uu":[0,0,0]},{"title":"5. FLASH with Stepan (CSM) - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=339","views":[0,0,0],"uu":[0,0,0]},{"title":"4. Connect Industry Capabilities to Product Features - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=340","views":[0,0,0],"uu":[0,0,0]},{"title":"4. When to Use FLASH vs. Other Tools - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=341","views":[0,0,0],"uu":[0,0,0]},{"title":"6. FLASH for Sales - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=342","views":[0,0,0],"uu":[0,0,0]},{"title":"4. Executive Value Brief - User Training (thumbnail)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=343","views":[0,0,0],"uu":[0,0,0]},{"title":"4. Enablement Session - Account Executives (Jan 2025) (thumbnail)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=344","views":[0,0,0],"uu":[0,0,0]},{"title":"4. SIX Technologies Knowledge Transfer Sessions (July 2025) (thumbnail)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=346","views":[0,0,0],"uu":[0,0,0]},{"title":"3. CSE & EVB Feature Walkthrough (thumbnail)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=348","views":[0,0,0],"uu":[0,0,0]},{"title":"4. Nothing But Network (thumbnail)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=363","views":[0,0,0],"uu":[0,0,0]},{"title":"3.  Strategic Conversations Guide - Demo (thumbnail)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=364","views":[0,0,0],"uu":[0,0,0]},{"title":"4. Discovering the CFO’s Value... (thumbnail)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=366","views":[0,0,0],"uu":[0,0,0]},{"title":"4. A Roundtable with Financial Experts (thumbnail)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=368","views":[0,0,0],"uu":[0,0,0]},{"title":"4. Enablement Session - Account Executives (Jan 2025) (thumbnail)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=382","views":[0,0,0],"uu":[0,0,0]},{"title":"4. Customer Strategy Explorer - User Training (thumbnail)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=383","views":[0,0,0],"uu":[0,0,0]},{"title":"4. SIX Technologies Knowledge Transfer Sessions (July 2025) (thumbnail)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=386","views":[0,0,0],"uu":[0,0,0]},{"title":"FLASH Maturity Assessment - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=409","views":[0,0,0],"uu":[0,0,0]},{"title":"Value One-Pager - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=410","views":[0,0,0],"uu":[0,0,0]},{"title":"Customer Value Explorer (CVE) - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=411","views":[0,0,0],"uu":[0,0,0]},{"title":"3169462517-EVB","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=430","views":[0,0,0],"uu":[0,0,0]},{"title":"CVE - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=446","views":[0,0,0],"uu":[0,0,0]},{"title":"5. Oliver Healthcare – Benchmarking for Life Sciences - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=48","views":[0,0,0],"uu":[0,0,0]},{"title":"6. AI Feature Value Estimation Approach - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=490","views":[0,0,0],"uu":[0,0,0]},{"title":"6. SAP Business AI Value Calculator Video - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=494","views":[0,0,0],"uu":[0,0,0]},{"title":"5. Royal Swinkels – Business Value Outcomes - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=50","views":[0,0,0],"uu":[0,0,0]},{"title":"4. SAP Business AI persona value deck - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=502","views":[0,0,0],"uu":[0,0,0]},{"title":"7.  Can't Escape AI (thumbnail)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=507","views":[0,0,0],"uu":[0,0,0]},{"title":"7. Finance Leading in the Moment (thumbnail)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=508","views":[0,0,0],"uu":[0,0,0]},{"title":"5. Stelpro – S4HANA Transformation - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=52","views":[0,0,0],"uu":[0,0,0]},{"title":"CVE - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=521","views":[0,0,0],"uu":[0,0,0]},{"title":"4. Customer Tutorial Video - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=53","views":[0,0,0],"uu":[0,0,0]},{"title":"5. Magnum Tires – Driving Customer Value - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=54","views":[0,0,0],"uu":[0,0,0]},{"title":"5. Kemira – Sustainable Growth Focus - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=56","views":[0,0,0],"uu":[0,0,0]},{"title":"5. NADEC – Journey to the Intelligent Enterprise - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=57","views":[0,0,0],"uu":[0,0,0]},{"title":"BTP - Learn to Win (Q1 2025)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=634","views":[0,0,0],"uu":[0,0,0]},{"title":"6. Resilience, Recovery, & Growth During Challenging Times (thumbnail)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=65","views":[0,0,0],"uu":[0,0,0]},{"title":"413449134-thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=658","views":[0,0,0],"uu":[0,0,0]},{"title":"4282738104-thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=659","views":[0,0,0],"uu":[0,0,0]},{"title":"6. Storyboard Outlines (thumbnail)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=66","views":[0,0,0],"uu":[0,0,0]},{"title":"6. Mergers Acquisitions Divestitures w SAP (thumbnail)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=69","views":[0,0,0],"uu":[0,0,0]},{"title":"5. How to Run Discovery Workshop - coming soon (thumbnail)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=70","views":[0,0,0],"uu":[0,0,0]},{"title":"8. Strategic Conversations Guide - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=71","views":[0,0,0],"uu":[0,0,0]},{"title":"3. Experiences & Customer Engagement - Finance ROI Model (thumbnail)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=72","views":[0,0,0],"uu":[0,0,0]},{"title":"2. Who We Are or Key Asset - Finance ROI Model (thumbnail)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=74","views":[0,0,0],"uu":[0,0,0]},{"title":"6.  Partner Story - Blackline (thumbnail)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=78","views":[0,0,0],"uu":[0,0,0]},{"title":"4. How to Create a Business Case - coming soon (thumbnail)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=80","views":[0,0,0],"uu":[0,0,0]},{"title":"7. Central Finance Use Cases (thumbnail)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Business Applications - 2. Finance/7. Learning & Enablement/7. Central Finance Use Cases (thumbnail).pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"StrategicConversationsGuide - folder","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/StrategicConversationsGuide","views":[0,0,0],"uu":[0,0,0]},{"title":"StrategicConversationsGuide(1) - folder","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/StrategicConversationsGuide(1)","views":[0,0,0],"uu":[0,0,0]},{"title":"Technology & Data - folder","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data","views":[0,0,0],"uu":[0,0,0]},{"title":"4. AI in Industry L1 & Executive decks - thumbnail","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 2. Business AI/4. AI in Industry L1 & Executive decks - thumbnail.pdf","views":[0,0,0],"uu":[0,0,0]},{"title":"Technology & Data - 5. Business Transformation Management - coming soon - folder","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Technology & Data - 5. Business Transformation Management - coming soon","views":[0,0,0],"uu":[0,0,0]},{"title":"TechnologyandData - folder","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/TechnologyandData","views":[0,0,0],"uu":[0,0,0]},{"title":"Tools - 1.4 Customer Research - Strategic Conversations Guide - folder","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Tools - 1.4 Customer Research - Strategic Conversations Guide","views":[0,0,0],"uu":[0,0,0]},{"title":"ValueOnePager - folder","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/ValueOnePager","views":[0,0,0],"uu":[0,0,0]},{"title":"TechnologyandData - folder","url":"https://sap.sharepoint.com/sites/212788/SitePages/TechnologyandData","views":[0,0,0],"uu":[0,0,0]},{"title":"BusinessDataCloud - folder","url":"https://sap.sharepoint.com/sites/212788/SitePages/TechnologyandData/BusinessDataCloud","views":[0,0,0],"uu":[0,0,0]}],"Tools":[{"title":"Tools","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools.aspx","views":[232,234,196],"uu":[100,111,111]}],"Value One-Pager":[{"title":"Value One-Pager - Introduction","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=63","views":[0,3,2],"uu":[0,3,1]},{"title":"Value One-Pager - Feature Walkthrough.pptx","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Learning & Enablement/Value One-Pager - Feature Walkthrough.pptx","views":[6,18,9],"uu":[3,5,5]},{"title":"Value One-Pager - Consumer Products - Value-driven go-to-market","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Value One-Pager - Consumer Products - Value-driven go-to-market.pdf","views":[1,12,7],"uu":[1,6,5]},{"title":"Value One-Pager - Life Sciences Innovation through S4HANA transformation.pptx","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Value One-Pager - Life Sciences Innovation through S4HANA transformation.pptx","views":[5,17,7],"uu":[2,7,1]},{"title":"Value-One-Pager_Step-by-step-document.pptx","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/TO BE USED/Templates-&-Deliverables/Value-One-Pager_Step-by-step-document.pptx","views":[0,0,1],"uu":[0,0,1]},{"title":"Tools - 2.3 Outside-In Analysis - Value One-Pager","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Tools - 2.3 Outside-In Analysis - Value One-Pager","views":[0,0,0],"uu":[0,0,0]},{"title":"Value One-Pager","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools/ValueOnePager.aspx","views":[22,13,16],"uu":[15,12,12]}],"Value Starter":[{"title":"Value Starter - Introduction","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/Forms/DispForm.aspx?ID=67","views":[1,7,2],"uu":[1,5,2]},{"title":"Value Starter - Alliance Healthcare - Customer POV","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Value Starter - Alliance Healthcare - Customer POV.pdf","views":[0,7,0],"uu":[0,4,0]},{"title":"Value Starter - Kuwaiti Danish Dairy (KDD) - Dairy Industry","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Value Starter - Kuwaiti Danish Dairy (KDD) - Dairy Industry.pdf","views":[0,6,0],"uu":[0,3,0]},{"title":"Value Starter - Toyota Boshoku - Customer POV","url":"https://sap.sharepoint.com/sites/212788/Shared Documents/General/Templates/Customer Examples/Value Starter - Toyota Boshoku - Customer POV.pdf","views":[0,8,2],"uu":[0,5,1]},{"title":"4. How to create a Value Starter using Low Touch mode Video","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=355","views":[0,0,0],"uu":[0,0,0]},{"title":"4. How to create a Value Starter using High Touch mode","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=356","views":[0,0,0],"uu":[0,0,0]},{"title":"5. Alliance Healthcare DO POV Value Starter","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=357","views":[0,0,0],"uu":[0,0,0]},{"title":"4. Value Starter -  SAP Value Lifecycle Manager 201 Learning Course","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=358","views":[0,0,0],"uu":[0,0,0]},{"title":"4. Introduction Video to Value Starter","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=360","views":[0,0,0],"uu":[0,0,0]},{"title":"5. Toyota Boshoku DO - POV Value Starter 2024","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=362","views":[0,0,0],"uu":[0,0,0]},{"title":"Value Starter","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=412","views":[0,0,0],"uu":[0,0,0]},{"title":"Tools - 2.2 Outside-In Analysis - Value Starter","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Tools - 2.2 Outside-In Analysis - Value Starter","views":[0,0,0],"uu":[0,0,0]},{"title":"ValueStarter","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/ValueStarter","views":[0,0,0],"uu":[0,0,0]},{"title":"Value Starter","url":"https://sap.sharepoint.com/sites/212788/SitePages/Tools/ValueStarter.aspx","views":[32,27,22],"uu":[20,18,18]}],"Who We Are (home)":[{"title":"Global Value Advisory","url":"https://sap.sharepoint.com/sites/212788","views":[6912,8821,8445],"uu":[379,512,628]},{"title":"2. Who We Are - used","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/Forms/DispForm.aspx?ID=59","views":[0,0,0],"uu":[0,0,0]},{"title":"Who We Are (Home)","url":"https://sap.sharepoint.com/sites/212788/SiteAssets/SitePages/Who We Are (Home)","views":[0,0,0],"uu":[0,0,0]},{"title":"Home","url":"https://sap.sharepoint.com/sites/212788/SitePages/Home(1).aspx","views":[943,871,833],"uu":[291,286,284]}]},"month_labels":["Jan 2026","Feb 2026","Mar 2026"],"last_label":"Mar 2026"};
+
+const D = DATA;
+function fmt(n){return n?Number(n).toLocaleString():'<span style="color:#ccc;font-weight:400">0</span>';}
+function fmtN(n){return n||0;}
+
+// ─── HEADER META ───
+const totals = D.monthly_totals;
+const last = totals[totals.length-1];
+const prev = totals.length>1 ? totals[totals.length-2] : null;
+const allV = totals.reduce((s,r)=>s+r.views,0);
+const allU = totals.reduce((s,r)=>s+r.uu,0);
+document.getElementById('headerMeta').innerHTML =
+  '<div class="header-stat"><div class="hs-val">'+last.views.toLocaleString()+'</div><div class="hs-lbl">Views this month</div></div>'+
+  '<div class="header-divider"></div>'+
+  '<div class="header-stat"><div class="hs-val">'+last.uu.toLocaleString()+'</div><div class="hs-lbl">Unique users</div></div>'+
+  '<div class="header-divider"></div>'+
+  '<div class="header-stat"><div class="hs-val">'+allV.toLocaleString()+'</div><div class="hs-lbl">All-time views</div></div>';
+
+// ─── SHOW TAB ───
+function showTab(id){
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-dropdown-btn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-dropdown-item').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tab-dropdown').forEach(d=>d.classList.remove('open'));
+  const panel = document.getElementById('p_'+id);
+  if(panel) panel.classList.add('active');
+  // flat tab button
+  const flatBtn = document.querySelector('.tab-btn[data-tab="'+id+'"]');
+  if(flatBtn) flatBtn.classList.add('active');
+  // dropdown item + parent dropdown button
+  const dropItem = document.querySelector('.tab-dropdown-item[data-tab="'+id+'"]');
+  if(dropItem){
+    dropItem.classList.add('active');
+    const dropBtn = dropItem.closest('.tab-dropdown').querySelector('.tab-dropdown-btn');
+    if(dropBtn) dropBtn.classList.add('active');
+  }
+  if(id !== 'overview') renderCat(id);
+}
+
+// ─── BUILD TABS ───
+const TAB_GROUPS = [
+  {label:'Who We Are', cats:['Who We Are (home)','Who We Are (Home)','Our Team / Our Work','Our Team','Our Work']},
+  {label:'Business Applications', cats:['Spend','Finance','Supply Chain','Human Capital Management','Cloud ERP','RISE with SAP']},
+  {label:'Technology & Data', cats:['Technology & Data','Business AI','Business Data Cloud','Business Technology Platform','Business Transformation Management','Business Suite']},
+  {label:'Tools', cats:['Customer Strategy Explorer','Executive Value Brief','Customer Value Explorer','Strategic Conversations Guide','Executive Value Brief & Customer Strategy Explorer','Move the Needle','Value Starter','Value One-Pager','FLASH','Performance Benchmarking','Guided Business Case']}
+];
+
+function catToId(cat){ return cat.replace(/[^a-zA-Z0-9]/g,'_'); }
+
+// build a Set of all grouped cats for quick lookup
+const groupedCats = new Set();
+TAB_GROUPS.forEach(g=>g.cats.forEach(c=>groupedCats.add(c)));
+
+const tabBar = document.getElementById('tabBar');
+
+// 1. Add grouped dropdowns
+TAB_GROUPS.forEach(function(group){
+  // only render group if at least one cat exists in data
+  const existingCats = group.cats.filter(c=>D.categories.indexOf(c)!==-1);
+  if(existingCats.length===0) return;
+
+  const wrap = document.createElement('div');
+  wrap.className='tab-dropdown';
+
+  const btn = document.createElement('button');
+  btn.className='tab-dropdown-btn';
+  btn.innerHTML=group.label+'<span class="tab-dropdown-arrow">&#9660;</span>';
+
+  const menu = document.createElement('div');
+  menu.className='tab-dropdown-menu';
+
+  var hoverTimer;
+  wrap.addEventListener('mouseenter', function(){
+    clearTimeout(hoverTimer);
+    document.querySelectorAll('.tab-dropdown').forEach(d=>d.classList.remove('open'));
+    wrap.classList.add('open');
+    var rect = btn.getBoundingClientRect();
+    menu.style.top = (rect.bottom + 2) + 'px';
+    menu.style.left = rect.left + 'px';
+  });
+  wrap.addEventListener('mouseleave', function(){
+    hoverTimer = setTimeout(function(){ wrap.classList.remove('open'); }, 150);
+  });
+  menu.addEventListener('mouseenter', function(){ clearTimeout(hoverTimer); });
+  menu.addEventListener('mouseleave', function(){
+    hoverTimer = setTimeout(function(){ wrap.classList.remove('open'); }, 150);
+  });
+  btn.onclick=function(e){
+    e.stopPropagation();
+    const isOpen = wrap.classList.contains('open');
+    document.querySelectorAll('.tab-dropdown').forEach(d=>d.classList.remove('open'));
+    if(!isOpen){
+      wrap.classList.add('open');
+      var rect = btn.getBoundingClientRect();
+      menu.style.top = (rect.bottom + 2) + 'px';
+      menu.style.left = rect.left + 'px';
+    }
+  };
+  wrap.appendChild(btn);
+
+  existingCats.forEach(function(cat){
+    const id = catToId(cat);
+    const item = document.createElement('button');
+    item.className='tab-dropdown-item';
+    item.textContent=cat;
+    item.dataset.tab=id;
+    item.onclick=function(e){
+      e.stopPropagation();
+      document.querySelectorAll('.tab-dropdown').forEach(d=>d.classList.remove('open'));
+      showTab(id);
+    };
+    menu.appendChild(item);
+
+    const panel = document.createElement('div');
+    panel.id='p_'+id; panel.className='panel';
+    document.body.appendChild(panel);
+  });
+
+  wrap.appendChild(menu);
+  tabBar.appendChild(wrap);
+});
+
+// 2. Add unassigned categories as flat tab-btn
+D.categories.forEach(function(cat){
+  if(groupedCats.has(cat)) return;
+  const id = catToId(cat);
+  const btn = document.createElement('button');
+  btn.className='tab-btn'; btn.textContent=cat;
+  btn.dataset.tab=id;
+  btn.onclick=function(){ showTab(id); };
+  tabBar.appendChild(btn);
+
+  const panel = document.createElement('div');
+  panel.id='p_'+id; panel.className='panel';
+  document.body.appendChild(panel);
+});
+
+// Close dropdowns on outside click
+document.addEventListener('click',function(){
+  document.querySelectorAll('.tab-dropdown').forEach(d=>d.classList.remove('open'));
+});
+
+// ─── KPIs ───
+function trendBadge(cur, prv){
+  if(!prv) return '';
+  const pct = Math.round((cur-prv)/prv*100);
+  const cls = pct>=0?'trend-up':'trend-down';
+  const arrow = pct>=0?'▲':'▼';
+  return '<div class="trend '+cls+'">'+arrow+' '+Math.abs(pct)+'% vs prev month</div>';
+}
+
+document.getElementById('kpiRow').innerHTML = [
+  ['Total Views', last.views.toLocaleString(), D.month_labels[D.month_labels.length-1], trendBadge(last.views, prev?prev.views:null), '', '&#128202;'],
+  ['Unique Users', last.uu.toLocaleString(), D.month_labels[D.month_labels.length-1], trendBadge(last.uu, prev?prev.uu:null), 'gold', '&#128101;'],
+  ['All-Time Views', allV.toLocaleString(), totals.length+' months tracked', '', 'navy', '&#128200;'],
+  ['All-Time Users', allU.toLocaleString(), 'Cumulative unique', '', 'teal', '&#127760;'],
+].map(function(a){
+  var lbl=a[0],val=a[1],sub=a[2],trend=a[3],cls=a[4],icon=a[5];
+  return '<div class="kpi-card '+cls+'"><span class="kpi-icon">'+icon+'</span><div class="lbl">'+lbl+'</div><div class="val">'+val+'</div><div class="sub">'+sub+'</div>'+trend+'</div>';
+}).join('');
+
+// ─── CHARTS ───
+Chart.defaults.font.family = "'72', 'Helvetica Neue', Arial, sans-serif";
+Chart.defaults.font.size = 12;
+
+function makeChart(id, label, getter, color){
+  const ctx = document.getElementById(id).getContext('2d');
+  const reversedTotals = totals.slice().reverse();
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: reversedTotals.map(r=>r.month_label),
+      datasets: [{
+        label: label,
+        data: reversedTotals.map(getter),
+        backgroundColor: reversedTotals.map((_,i)=> i===0 ? color : color+'99'),
+        borderRadius: 8,
+        borderSkipped: false,
+        borderWidth: 0
+      }]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#00144A',
+          titleFont: { weight: 700 },
+          callbacks: { label: function(ctx){ return ctx.raw.toLocaleString()+' '+label; } }
+        }
+      },
+      scales: {
+        y: { beginAtZero: true, grid: { color: '#F0F3FA' }, ticks: { color: '#9EA8B3' } },
+        x: { grid: { display: false }, ticks: { color: '#556068' } }
+      }
+    }
+  });
+}
+makeChart('chartViews','Views',function(r){return r.views;},'#0070F2');
+makeChart('chartUU','Unique Users',function(r){return r.uu;},'#F0AB00');
+
+// ─── TOP PAGES TABLE ───
+const overviewData = D.top_aspx;
+let overviewFiltered = overviewData.slice();
+var ovSort = {col:'views', idx:D.month_labels.length-1, dir:1};
+
+function buildOverviewHead(){
+  var n = D.month_labels.length;
+  var mhCells = '<th rowspan="2" style="width:44px;text-align:center;cursor:default">#</th><th rowspan="2">Page Title</th>';
+  monthOrder.forEach(function(mi){
+    var bdr = mi>0 ? ' style="border-right:2px solid rgba(255,255,255,0.15)"' : '';
+    mhCells += '<th colspan="2"'+bdr+'>'+D.month_labels[mi]+'</th>';
+  });
+  var chCells = '';
+  monthOrder.forEach(function(mi){
+    var bdr = mi>0 ? ' style="border-right:2px solid rgba(255,255,255,0.1)"' : '';
+    chCells += '<th onclick="sortOverview(\'views\','+mi+')" id="ovthv_'+mi+'" style="cursor:pointer">Views &#x21D5;</th>';
+    chCells += '<th onclick="sortOverview(\'uu\','+mi+')" id="ovthu_'+mi+'" style="cursor:pointer"'+bdr+'>UU &#x21D5;</th>';
+  });
+  document.getElementById('ovThead').innerHTML =
+    '<tr style="background:var(--blue-11);color:#fff">'+mhCells+'</tr>'+
+    '<tr style="background:var(--blue-10);color:#fff">'+chCells+'</tr>';
+  // show default sort indicator
+  var defTh = document.getElementById('ovthv_'+(D.month_labels.length-1));
+  if(defTh){ defTh.classList.add('sorted'); defTh.innerHTML='Views &#x25BC;'; }
+}
+
+function renderOverview(rows){
+  var n = D.month_labels.length;
+  var maxV = Math.max.apply(null, overviewData.map(r=>r.views[n-1]).concat([1]));
+  var totalCols = 2 + n*2;
+  if(!rows.length){
+    document.getElementById('topBody').innerHTML = '<tr><td colspan="'+totalCols+'" class="no-results">No pages match your search.</td></tr>';
+    document.getElementById('overviewCount').textContent = '';
+    return;
+  }
+  document.getElementById('overviewCount').textContent = rows.length < overviewData.length ? 'Showing '+rows.length+' of '+overviewData.length : rows.length+' pages';
+  document.getElementById('topBody').innerHTML = rows.map(function(r,i){
+    var rankEl = i<3 ? '<span class="rank-badge rank-'+(i+1)+'">'+(i+1)+'</span>' : '<span style="color:#9EA8B3;font-weight:600">'+(i+1)+'</span>';
+    var cells = '';
+    monthOrder.forEach(function(mi){
+      var bdr = mi>0 ? ' style="border-right:1px solid #e8edf8"' : '';
+      cells += '<td class="num">'+fmt(r.views[mi])+'</td><td class="num"'+bdr+'>'+fmt(r.uu[mi])+'</td>';
+    });
+    return '<tr>'+
+      '<td class="rank">'+rankEl+'</td>'+
+      '<td class="link-cell">'+
+        '<a class="link-title" href="'+r.url+'" target="_blank" title="'+r.title+'">'+r.title+'</a>'+
+        '<span class="bar-mini" style="width:'+Math.round(r.views[n-1]/maxV*280)+'px"></span>'+
+      '</td>'+cells+'</tr>';
+  }).join('');
+}
+
+function sortOverview(col, idx){
+  if(ovSort.col===col && ovSort.idx===idx) ovSort.dir*=-1; else{ovSort.col=col; ovSort.idx=idx; ovSort.dir=1;}
+  overviewFiltered.sort(function(a,b){
+    var va = col==='views'?a.views[idx]:a.uu[idx];
+    var vb = col==='views'?b.views[idx]:b.uu[idx];
+    return ovSort.dir*(vb-va);
+  });
+  D.month_labels.forEach(function(_,mi){
+    var tv=document.getElementById('ovthv_'+mi), tu=document.getElementById('ovthu_'+mi);
+    if(tv){tv.classList.remove('sorted');tv.innerHTML='Views &#x21D5;';}
+    if(tu){tu.classList.remove('sorted');tu.innerHTML='UU &#x21D5;';}
+  });
+  var active=document.getElementById((col==='views'?'ovthv_':'ovthu_')+idx);
+  if(active){active.classList.add('sorted');active.innerHTML=(col==='views'?'Views':'UU')+' '+(ovSort.dir===1?'&#x25BC;':'&#x25B2;');}
+  renderOverview(overviewFiltered);
+}
+
+function filterOverview(q){
+  overviewFiltered = q ? overviewData.filter(r=>r.title.toLowerCase().includes(q.toLowerCase())) : overviewData.slice();
+  overviewFiltered.sort(function(a,b){
+    var va=ovSort.col==='views'?a.views[ovSort.idx]:a.uu[ovSort.idx];
+    var vb=ovSort.col==='views'?b.views[ovSort.idx]:b.uu[ovSort.idx];
+    return ovSort.dir*(vb-va);
+  });
+  renderOverview(overviewFiltered);
+}
+
+function exportOverviewCSV(){
+  var monthHeaders = monthOrder.map(function(mi){return 'Views ('+D.month_labels[mi]+'),UU ('+D.month_labels[mi]+')';}).join(',');
+  var csv = ['#,Title,URL,'+monthHeaders].concat(
+    overviewFiltered.map(function(r,i){
+      var cols=monthOrder.map(function(mi){return fmtN(r.views[mi])+','+fmtN(r.uu[mi]);}).join(',');
+      return (i+1)+',"'+r.title.replace(/"/g,'""')+'","'+r.url+'",'+cols;
+    })
+  ).join('\n');
+  downloadCSV(csv, 'gva_top_pages_'+D.month_labels[D.month_labels.length-1].replace(/ /g,'_').toLowerCase()+'.csv');
+}
+
+function downloadCSV(content, filename){
+  var a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,\uFEFF'+encodeURIComponent(content);
+  a.download = filename;
+  a.click();
+}
+
+// ─── CATEGORY PANELS (multi-month array data) ───
+const sortState = {};
+// display order: newest month first
+const monthOrder = Array.from({length: D.month_labels.length}, function(_,i){ return D.month_labels.length-1-i; });
+
+buildOverviewHead();
+renderOverview(overviewFiltered);
+document.getElementById('overviewCount').textContent = overviewData.length+' pages';
+
+function renderCat(id){
+  const panel = document.getElementById('p_'+id);
+  if(panel.dataset.rendered) return;
+
+  const cat = D.categories.find(c=>c.replace(/[^a-zA-Z0-9]/g,'_')===id);
+  const allRows = D.category_data[cat] || [];
+  const n = D.month_labels.length;
+
+  if(!allRows.length){
+    panel.innerHTML = '<div class="empty-panel"><div class="ei">&#128194;</div><div>No asset data available for this category.</div></div>';
+    panel.dataset.rendered='1';
+    return;
+  }
+
+  const tv = allRows.reduce(function(s,r){return s+r.views[n-1];},0);
+  const tu = allRows.reduce(function(s,r){return s+r.uu[n-1];},0);
+  sortState[id] = {col:'views', idx:n-1, dir:1};
+
+  // Build month-group header cells
+  var mhCells = '<th rowspan="2" style="width:44px;text-align:center;cursor:default">#</th><th rowspan="2">Asset Title</th>';
+  monthOrder.forEach(function(mi){
+    var ml = D.month_labels[mi];
+    var bdr = mi>0 ? ' style="border-right:2px solid rgba(255,255,255,0.15)"' : '';
+    mhCells += '<th colspan="2"'+bdr+'>'+ml+'</th>';
+  });
+
+  // Build sortable column header cells
+  var chCells = '';
+  monthOrder.forEach(function(mi){
+    var bdr = mi>0 ? ' style="border-right:2px solid rgba(255,255,255,0.1)"' : '';
+    chCells += '<th onclick="sortCat(\''+id+'\',\'views\','+mi+')" id="thv_'+id+'_'+mi+'">Views &#x21D5;</th>';
+    chCells += '<th onclick="sortCat(\''+id+'\',\'uu\','+mi+')" id="thu_'+id+'_'+mi+'"'+bdr+'>UU &#x21D5;</th>';
+  });
+  var totalCols = 2 + n*2;
+
+  panel.innerHTML =
+    '<div class="cat-stats">'+
+      '<div class="cat-kpi"><div class="lbl">Assets</div><div class="val">'+allRows.length+'</div></div>'+
+      '<div class="cat-kpi"><div class="lbl">Views ('+D.month_labels[n-1]+')</div><div class="val">'+tv.toLocaleString()+'</div></div>'+
+      '<div class="cat-kpi"><div class="lbl">Unique Users ('+D.month_labels[n-1]+')</div><div class="val">'+tu.toLocaleString()+'</div></div>'+
+    '</div>'+
+    '<div class="toolbar">'+
+      '<div class="search-wrap">'+
+        '<svg class="search-icon" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="5" stroke="#2A2D36" stroke-width="1.5"/><path d="M10 10L14 14" stroke="#2A2D36" stroke-width="1.5" stroke-linecap="round"/></svg>'+
+        '<input type="text" placeholder="Search assets\u2026" oninput="filterCat(\''+id+'\', this.value)" id="search_'+id+'">'+
+      '</div>'+
+      '<button class="btn-export" onclick="exportCatCSV(\''+id+'\')">'+
+        '<svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M7 1v8M4 6l3 3 3-3M2 11h10" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>'+
+        ' Export CSV'+
+      '</button>'+
+      '<span class="filter-count" id="count_'+id+'">'+allRows.length+' assets</span>'+
+    '</div>'+
+    '<div class="hint">Click column header to sort &middot; Sorted by last month views</div>'+
+    '<div class="table-wrap">'+
+      '<table>'+
+        '<thead>'+
+          '<tr style="background:var(--blue-11);color:#fff">'+mhCells+'</tr>'+
+          '<tr style="background:var(--blue-10);color:#fff">'+chCells+'</tr>'+
+        '</thead>'+
+        '<tbody id="tb_'+id+'"></tbody>'+
+      '</table>'+
+    '</div>';
+
+  panel._allRows = allRows;
+  panel._filtered = allRows.slice();
+  drawCatRows(id);
+  var defaultTh = document.getElementById('thv_'+id+'_'+(n-1));
+  if(defaultTh){ defaultTh.classList.add('sorted'); defaultTh.innerHTML = defaultTh.innerHTML.replace(/[\u25BC\u25B2\u21D5]/g,'\u25BC'); }
+  panel.dataset.rendered = '1';
+}
+
+function filterCat(id, q){
+  const panel = document.getElementById('p_'+id);
+  const allRows = panel._allRows || [];
+  panel._filtered = q ? allRows.filter(r=>r.title.toLowerCase().includes(q.toLowerCase())) : allRows.slice();
+  const countEl = document.getElementById('count_'+id);
+  if(countEl) countEl.textContent = panel._filtered.length < allRows.length
+    ? 'Showing '+panel._filtered.length+' of '+allRows.length
+    : allRows.length+' assets';
+  drawCatRows(id);
+}
+
+function drawCatRows(id){
+  const panel = document.getElementById('p_'+id);
+  const rows = panel._filtered || (panel._allRows || []);
+  const s = sortState[id] || {col:'views', idx:D.month_labels.length-1, dir:1};
+  const n = D.month_labels.length;
+  const sorted = rows.slice().sort(function(a,b){
+    var va = s.col==='views' ? a.views[s.idx] : a.uu[s.idx];
+    var vb = s.col==='views' ? b.views[s.idx] : b.uu[s.idx];
+    return s.dir*(vb-va);
+  });
+  const maxV = Math.max.apply(null, sorted.map(r=>r.views[n-1]).concat([1]));
+  const tbody = document.getElementById('tb_'+id);
+  if(!tbody) return;
+
+  if(!sorted.length){
+    tbody.innerHTML = '<tr><td colspan="'+(2+n*2)+'" class="no-results">No assets match your search.</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = sorted.map(function(r,i){
+    var rankEl = i<3 ? '<span class="rank-badge rank-'+(i+1)+'">'+(i+1)+'</span>' : '<span style="color:#9EA8B3;font-weight:600">'+(i+1)+'</span>';
+    var cells = '';
+    monthOrder.forEach(function(mi){
+      var bdr = mi>0 ? ' style="border-right:1px solid #e8edf8"' : '';
+      cells += '<td class="num">'+fmt(r.views[mi])+'</td><td class="num"'+bdr+'>'+fmt(r.uu[mi])+'</td>';
+    });
+    return '<tr>'+
+      '<td class="rank">'+rankEl+'</td>'+
+      '<td class="link-cell">'+
+        '<a class="link-title" href="'+r.url+'" target="_blank" title="'+r.title+'">'+r.title+'</a>'+
+        '<span class="bar-mini" style="width:'+Math.round(r.views[n-1]/maxV*280)+'px"></span>'+
+      '</td>'+
+      cells+
+    '</tr>';
+  }).join('');
+}
+
+function sortCat(id, col, idx){
+  const s = sortState[id];
+  if(s.col===col && s.idx===idx) s.dir*=-1; else{s.col=col; s.idx=idx; s.dir=1;}
+  const n = D.month_labels.length;
+  D.month_labels.forEach(function(_,mi){
+    var thv = document.getElementById('thv_'+id+'_'+mi);
+    var thu = document.getElementById('thu_'+id+'_'+mi);
+    if(thv){ thv.classList.remove('sorted'); thv.innerHTML=thv.innerHTML.replace(/[\u25BC\u25B2\u21D5]/g,'\u21D5'); }
+    if(thu){ thu.classList.remove('sorted'); thu.innerHTML=thu.innerHTML.replace(/[\u25BC\u25B2\u21D5]/g,'\u21D5'); }
+  });
+  var activeId = (col==='views'?'thv_':'thu_')+id+'_'+idx;
+  var active = document.getElementById(activeId);
+  if(active){ active.classList.add('sorted'); active.innerHTML=active.innerHTML.replace(/[\u25BC\u25B2\u21D5]/g, s.dir===1?'\u25BC':'\u25B2'); }
+  drawCatRows(id);
+}
+
+function exportCatCSV(id){
+  const panel = document.getElementById('p_'+id);
+  const cat = D.categories.find(c=>c.replace(/[^a-zA-Z0-9]/g,'_')===id);
+  const rows = panel._filtered || panel._allRows || [];
+  const s = sortState[id] || {col:'views', idx:D.month_labels.length-1, dir:1};
+  const n = D.month_labels.length;
+  const sorted = rows.slice().sort(function(a,b){
+    var va = s.col==='views' ? a.views[s.idx] : a.uu[s.idx];
+    var vb = s.col==='views' ? b.views[s.idx] : b.uu[s.idx];
+    return s.dir*(vb-va);
+  });
+  var monthHeaders = monthOrder.map(function(mi){ return 'Views ('+D.month_labels[mi]+'),UU ('+D.month_labels[mi]+')'; }).join(',');
+  var csv = ['#,Title,URL,'+monthHeaders].concat(
+    sorted.map(function(r,i){
+      var monthCols = monthOrder.map(function(mi){ return fmtN(r.views[mi])+','+fmtN(r.uu[mi]); }).join(',');
+      return (i+1)+',"'+r.title.replace(/"/g,'""')+'","'+r.url+'",'+monthCols;
+    })
+  ).join('\n');
+  downloadCSV(csv, 'gva_'+id+'_'+D.month_labels[n-1].replace(/ /g,'_').toLowerCase()+'.csv');
+}
+</script>
+</body>
+</html>
